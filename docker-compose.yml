@@ -17,16 +17,20 @@ services:
     ports:
       - "6379:6379"
 
-
   api:
     build: .
+    volumes: 
+      - .:/app
     depends_on:
       - db
       - redis
     env_file: .env
+    command: ["sh","-c","uvicorn app.main:app --host ${APP_HOST} --port ${APP_PORT} --reload --workers ${APP_WORKERS}"]
     ports:
       - "8000:8000"
-    command: ["sh","-c","uvicorn app.main:app --host ${APP_HOST} --port ${APP_PORT} --workers ${APP_WORKERS}"]
+    environment:
+      - PYTHONPATH=/app
+
 
 volumes:
   db_data:

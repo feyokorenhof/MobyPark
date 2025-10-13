@@ -1,9 +1,13 @@
 from passlib.hash import argon2
 
 
-def hash_password(password: str) -> str:
-    return argon2.hash(password)
+def hash_password(plain: str) -> str:
+    return argon2.hash(plain)
 
 
-def verify_password(password: str, password_hash: str) -> bool:
-    return argon2.verify(password, password_hash)
+def verify_password(plain: str, hashed: str) -> bool:
+    return argon2.verify(plain, hashed)
+
+
+def needs_update(hashed: str) -> bool:
+    return argon2.needs_update(hashed)

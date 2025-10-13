@@ -6,6 +6,8 @@ from datetime import datetime
 from app.db.base import Base, TimestampMixin
 import enum
 
+from app.models.user import User
+
 # --- optional: help linters know these exist ---
 if TYPE_CHECKING:
     from app.models.reservation import (
@@ -34,9 +36,7 @@ class ParkingLot(Base, TimestampMixin):
     timezone: Mapped[str] = mapped_column(String(64), nullable=False)
 
     # relationship to Spot
-    spots: Mapped[list[Spot]] = relationship(
-        back_populates="lot", cascade="all, delete-orphan"
-    )
+    spots: Mapped[list[Spot]] = relationship(back_populates="lot", passive_deletes=True)
 
 
 class Spot(Base, TimestampMixin):
@@ -50,8 +50,10 @@ class Spot(Base, TimestampMixin):
     kind: Mapped[str] = mapped_column(String(32), default="STANDARD", nullable=False)
 
     lot: Mapped[ParkingLot] = relationship(back_populates="spots")
-    reservations: Mapped[list[Reservation]] = relationship(
-        back_populates="spot", cascade="all, delete-orphan"
+
+    reservations: Mapped[list["Reservation"]] = relationship(
+        back_populates="spot",
+        passive_deletes=True,  # DB handles ON DELETE CASCADE
     )
 
 
@@ -59,13 +61,35 @@ class Reservation(Base, TimestampMixin):
     __tablename__ = "reservations"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
     spot_id: Mapped[int] = mapped_column(
-        ForeignKey("spots.id", ondelete="CASCADE"), index=True, nullable=False
+        ForeignKey("spots.id", ondelete="CASCADE"),
+        index=True,
+        nullable=False,
     )
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"),
+        index=True,
+        nullable=False,
+    )
+
     status: Mapped[ReservationStatus] = mapped_column(
-        Enum(ReservationStatus, name="reservation_status"), nullable=False
+        Enum(ReservationStatus, name="reservation_status"),  # PostgreSQL ENUM
+        nullable=False,
+        # optional: default on ORM and DB:
+        # default=ReservationStatus.pending,
+        # server_default="pending",
     )
+
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
-    spot: Mapped[Spot] = relationship(back_populates="reservations")
+    # Reverse pairs:
+    spot: Mapped["Spot"] = relationship(
+        back_populates="reservations",
+        passive_deletes=True,
+    )
+    user: Mapped["User"] = relationship(
+        back_populates="reservations",
+        passive_deletes=True,
+    )

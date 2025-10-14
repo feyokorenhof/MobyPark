@@ -7,10 +7,8 @@ from app.db.base import Base, TimestampMixin
 
 # --- optional: help linters know these exist ---
 if TYPE_CHECKING:
-    from app.models.reservation import (
-        ParkingLot,
-        Reservation,
-    )  # circular-safe imports
+    from app.models.reservation import Reservation
+    from app.models.parking_lot import ParkingLot
 
 
 class Spot(Base, TimestampMixin):

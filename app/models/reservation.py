@@ -1,7 +1,7 @@
 from __future__ import annotations  # <-- lets us use bare string class names safely
 from typing import TYPE_CHECKING
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, ForeignKey, Enum, DateTime, Integer
+from sqlalchemy import ForeignKey, Enum, DateTime, Integer
 from datetime import datetime
 from app.db.base import Base, TimestampMixin
 import enum
@@ -13,25 +13,12 @@ from app.models.spot import Spot
 if TYPE_CHECKING:
     from app.models.spot import Spot
 
-# ---------------------------------------------------------------------
-
 
 class ReservationStatus(str, enum.Enum):
     HOLD = "HOLD"
     CONFIRMED = "CONFIRMED"
     CANCELLED = "CANCELLED"
     EXPIRED = "EXPIRED"
-
-
-class ParkingLot(Base, TimestampMixin):
-    __tablename__ = "parking_lots"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(120), nullable=False)
-    timezone: Mapped[str] = mapped_column(String(64), nullable=False)
-
-    # relationship to Spot
-    spots: Mapped[list[Spot]] = relationship(back_populates="lot", passive_deletes=True)
 
 
 class Reservation(Base, TimestampMixin):

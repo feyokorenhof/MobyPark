@@ -3,7 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.db.session import get_session
 from app.models.parking_lot import ParkingLot
-from app.models.spot import Spot
 
 from app.schemas.parking_lot import ParkingLotIn, ParkingLotOut
 
@@ -34,9 +33,7 @@ async def add_parking_lot(
 ):
     # Create + persist
 
-    new_parking_lot = ParkingLot(
-        lot_id=payload.lot_id, label=payload.label, kind=payload.kind
-    )
+    new_parking_lot = ParkingLot(name=payload.name, timezone=payload.timezone)
 
     db.add(new_parking_lot)
     await db.flush()  # get PK

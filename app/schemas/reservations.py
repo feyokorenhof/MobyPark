@@ -14,7 +14,7 @@ class ReservationIn(BaseModel):
     starts_at: datetime
     ends_at: datetime
     user_id: int
-    spot_id: int
+    parking_lot_id: int
 
 
 class ReservationOut(BaseModel):
@@ -22,7 +22,7 @@ class ReservationOut(BaseModel):
     starts_at: datetime
     ends_at: datetime
     user_id: int
-    spot_id: int
+    parking_lot_id: int
     status: ReservationStatus = ReservationStatus.pending
 
     class Config:

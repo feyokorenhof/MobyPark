@@ -52,7 +52,7 @@ async def add_reservation(
     overlap_q = select(
         exists().where(
             and_(
-                Reservation.spot_id == payload.spot_id,
+                Reservation.parking_lot_id == payload.parking_lot_id,
                 ~((Reservation.ends_at <= start) | (Reservation.starts_at >= end)),
             )
         )
@@ -68,7 +68,7 @@ async def add_reservation(
         starts_at=start,
         ends_at=end,
         user_id=payload.user_id,
-        spot_id=payload.spot_id,
+        parking_lot_id=payload.parking_lot_id,
         status=ReservationStatus.CONFIRMED,
     )
     db.add(new_res)

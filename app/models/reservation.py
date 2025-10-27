@@ -1,5 +1,3 @@
-from __future__ import annotations  # <-- lets us use bare string class names safely
-from typing import TYPE_CHECKING
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey, Enum, DateTime, Integer
 from datetime import datetime
@@ -7,11 +5,6 @@ from app.db.base import Base, TimestampMixin
 import enum
 
 from app.models.user import User
-from app.models.spot import Spot
-
-# --- optional: help linters know these exist ---
-if TYPE_CHECKING:
-    from app.models.spot import Spot
 
 
 class ReservationStatus(str, enum.Enum):
@@ -26,11 +19,12 @@ class Reservation(Base, TimestampMixin):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
-    spot_id: Mapped[int] = mapped_column(
-        ForeignKey("spots.id", ondelete="CASCADE"),
+    parking_lot_id: Mapped[int] = mapped_column(
+        ForeignKey("parking_lots.id", ondelete="CASCADE"),
         index=True,
         nullable=False,
     )
+
     user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"),
         index=True,
@@ -45,11 +39,6 @@ class Reservation(Base, TimestampMixin):
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
-    # Reverse pairs:
-    spot: Mapped["Spot"] = relationship(
-        back_populates="reservations",
-        passive_deletes=True,
-    )
     user: Mapped["User"] = relationship(
         back_populates="reservations",
         passive_deletes=True,

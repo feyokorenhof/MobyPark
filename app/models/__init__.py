@@ -1,3 +1,3 @@
 from .user import User  # noqa
-from .reservation import ParkingLot, Spot, Reservation  # noqa
-from .spot import Spot
+from .reservation import Reservation  # noqa
+from .parking_lot import ParkingLot  # noqa

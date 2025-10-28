@@ -1,17 +1,15 @@
 from pydantic import BaseModel
 
 
-class SpotIn(BaseModel):
-    lot_id: int
-    label: str
-    kind: str
+class ParkingLotIn(BaseModel):
+    name: str
+    timezone: str
 
 
-class SpotOut(BaseModel):
+class ParkingLotOut(BaseModel):
     id: int
-    lot_id: int
-    label: str
-    kind: str
+    name: str
+    timezone: str
 
     class Config:
         from_attributes = (

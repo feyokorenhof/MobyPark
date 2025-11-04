@@ -1,7 +1,8 @@
 from typing import TYPE_CHECKING
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Boolean
+from sqlalchemy import String, Boolean, DateTime
 from app.db.base import Base, TimestampMixin
+from datetime import datetime
 
 
 # --- help linters : circular-safe imports ---
@@ -13,10 +14,14 @@ class User(Base, TimestampMixin):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
-    name: Mapped[str] = mapped_column(String(100))
+    username: Mapped[str] = mapped_column(String(100))
     password_hash: Mapped[str] = mapped_column(String(255))
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    name: Mapped[str] = mapped_column(String(100))
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    phone: Mapped[str] = mapped_column(String(15))
+    role: Mapped[str] = mapped_column(String(15))
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    birth_year: Mapped[int] = mapped_column()
 
     reservations: Mapped[list["Reservation"]] = relationship(
         back_populates="user",

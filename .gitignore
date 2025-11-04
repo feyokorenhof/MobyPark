@@ -31,11 +31,11 @@ htmlcov/
 .cache/
 .pytest_cache/
 .mypy_cache/
-.tox/
+.toxcode labs/
 *.prof
 
 # --- Local config ---
-.env          # your local environment file (but keep .env.example)
+.env
 .env.local
 .env.docker
 

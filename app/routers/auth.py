@@ -71,7 +71,6 @@ async def login(payload: LoginIn, db: AsyncSession = Depends(get_session)):
 
     # 4) issue JWT
     token = create_access_token(sub=str(user.id))
-
     return LoginOut(access_token=token, token_type="bearer")
 
 

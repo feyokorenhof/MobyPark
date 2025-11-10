@@ -1,5 +1,5 @@
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
 
@@ -18,14 +18,10 @@ class ReservationIn(BaseModel):
 
 
 class ReservationOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     starts_at: datetime
     ends_at: datetime
     user_id: int
     parking_lot_id: int
     status: ReservationStatus = ReservationStatus.pending
-
-    class Config:
-        from_attributes = (
-            True  # <-- important for model_validate(reservation) in router
-        )

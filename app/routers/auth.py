@@ -39,8 +39,14 @@ async def register(payload: RegisterIn, db: AsyncSession = Depends(get_session))
     user = User(
         email=payload.email,
         name=payload.name,
+        username=payload.username,
+        phone=payload.phone,
+        role=payload.role,
+        active=payload.active,
+        birth_year=payload.birth_year,
         password_hash=hash_password(payload.password),
     )
+
     db.add(user)
     await db.flush()
     await db.commit()

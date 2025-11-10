@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class ParkingLotIn(BaseModel):
@@ -7,11 +7,7 @@ class ParkingLotIn(BaseModel):
 
 
 class ParkingLotOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     name: str
     timezone: str
-
-    class Config:
-        from_attributes = (
-            True  # <-- important for model_validate(reservation) in router
-        )

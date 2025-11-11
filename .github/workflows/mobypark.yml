@@ -1,5 +1,24 @@
 name: MobyPark
 on: [push, pull_request]
+env:
+  POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+  POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+  POSTGRES_TEST_DB: ${{ secrets.POSTGRES_TEST_DB }}
+  # --- App (FastAPI / Uvicorn / Gunicorn) ---
+  APP_HOST: ${{ secrets.APP_HOST }}
+  APP_PORT: ${{ secrets.APP_PORT }}
+  APP_WORKERS: ${{ secrets.APP_WORKERS }}
+
+  # --- DB connection for the app / Alembic ---
+  DATABASE_HOST: db # the docker-compose service name for Postgres
+  DATABASE_PORT: 5432
+  DATABASE_NAME: ${POSTGRES_DB}
+  DATABASE_USER: ${POSTGRES_USER}
+  DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+  DATABASE_URL: postgresql+psycopg://$DATABASE_USER:$DATABASE_PASSWORD@$DATABASE_HOST:$DATABASE_PORT/$DATABASE_NAME
+  DATABASE_URL_TEST: postgresql+psycopg://$DATABASE_USER:$DATABASE_PASSWORD@$DATABASE_HOST:$DATABASE_PORT/$POSTGRES_TEST_DB
+
 jobs:
   build:
     runs-on: ubuntu-latest

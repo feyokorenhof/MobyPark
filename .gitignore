@@ -56,7 +56,7 @@ redis_data/
 
 # --- Alembic ---
 # Keep migrations/versions but ignore pycache or temp
-migrations/__pycache__/
+migrations/__pycache__/*
 migrations/*.pyc
 
 # --- Frontend (if you add React/Vite later) ---

@@ -2,7 +2,7 @@ from typing import AsyncGenerator
 import pytest
 import httpx
 import os
-
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from app.main import app
 from app.db.base import Base
@@ -55,16 +55,24 @@ async def async_session() -> AsyncGenerator[AsyncSession, None]:
 
 @pytest.fixture
 async def user_in_db(async_session: AsyncSession):
+    email = "test@test.com"
     user = User(
         username="TestUser",
         password_hash="test",
         name="Test",
-        email="test@test.com",
+        email=email,
         phone="683713498",
         role="User",
         active=True,
         birth_year=2001,
     )
+    # check if it already exists
+    result = await async_session.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+
+    if user:
+        return user
+
     async_session.add(user)
     await async_session.flush()  # gets user.id
     await async_session.commit()

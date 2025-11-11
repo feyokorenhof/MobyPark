@@ -1,11 +1,25 @@
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, Integer
-from app.db.base import Base, TimestampMixin
+from sqlalchemy import String, Integer, Float, DateTime
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from datetime import datetime
+from app.db.base import Base
+from app.models.reservation import Reservation
 
 
-class ParkingLot(Base, TimestampMixin):
+class ParkingLot(Base):
     __tablename__ = "parking_lots"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
-    timezone: Mapped[str] = mapped_column(String(64), nullable=False)
+    location: Mapped[str] = mapped_column(String(120), nullable=False)
+    address: Mapped[str] = mapped_column(String(255), nullable=False)
+    capacity: Mapped[int] = mapped_column(Integer, nullable=False)
+    reserved: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    tariff: Mapped[float] = mapped_column(Float, nullable=False)
+    daytariff: Mapped[float] = mapped_column(Float, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    latitude: Mapped[float] = mapped_column(Float, nullable=False)
+    longitude: Mapped[float] = mapped_column(Float, nullable=False)
+
+    reservations: Mapped[list["Reservation"]] = relationship(back_populates="parking_lot", passive_deletes=True)
+

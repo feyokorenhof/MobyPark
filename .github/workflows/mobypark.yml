@@ -8,20 +8,6 @@ jobs:
         python-version: ["3.13"]
     steps:
       - uses: actions/checkout@v5
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: "pip"
-
-      - name: Display Python version
-        run: python -c "import sys; print(sys.version)"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
       - name: Create .env for docker compose
         run: |
           cat > .env << 'EOF'
@@ -43,6 +29,30 @@ jobs:
           EOF
       - name: Spin up docker
         run: docker compose up -d
+      - name: Wait for Postgres to be ready
+        run: |
+          CONTAINER_ID=$(docker compose ps -q db)
+          for i in {1..20}; do
+            if docker exec "$CONTAINER_ID" pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"; then
+              echo "Postgres is up ✅"
+              break
+            fi
+            echo "Postgres not ready yet... ($i/20)"
+            sleep 1
+          done
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
       - name: Test with pytest
         run: |
           pip install pytest pytest-cov

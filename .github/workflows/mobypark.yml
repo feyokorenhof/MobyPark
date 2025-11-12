@@ -6,11 +6,19 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.13"]
+    env:
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      POSTGRES_TEST_DB: ${{ secrets.POSTGRES_TEST_DB }}
+      APP_HOST: ${{ secrets.APP_HOST }}
+      APP_PORT: ${{ secrets.APP_PORT }}
+      APP_WORKERS: ${{ secrets.APP_WORKERS }}
     steps:
       - uses: actions/checkout@v5
       - name: Create .env for docker compose
         run: |
-          cat > .env << 'EOF'
+          cat > .env << EOF
           POSTGRES_USER=${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB=${{ secrets.POSTGRES_DB }}
@@ -18,14 +26,13 @@ jobs:
           APP_HOST=${{ secrets.APP_HOST }}
           APP_PORT=${{ secrets.APP_PORT }}
           APP_WORKERS=${{ secrets.APP_WORKERS }}
-          DATABASE_HOST: db
-          DATABASE_PORT: 5432
-          DATABASE_NAME: ${POSTGRES_DB}
-          DATABASE_USER: ${POSTGRES_USER}
-          DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
-          DATABASE_URL: postgresql+psycopg://$DATABASE_USER:$DATABASE_PASSWORD@$DATABASE_HOST:$DATABASE_PORT/$DATABASE_NAME
-          DATABASE_URL_TEST: postgresql+psycopg://$DATABASE_USER:$DATABASE_PASSWORD@$DATABASE_HOST:$DATABASE_PORT/$POSTGRES_TEST_DB
-
+          DATABASE_HOST=db
+          DATABASE_PORT=5432
+          DATABASE_NAME=${POSTGRES_DB}
+          DATABASE_USER=${POSTGRES_USER}
+          DATABASE_PASSWORD=${POSTGRES_PASSWORD}
+          DATABASE_URL=postgresql+psycopg://$DATABASE_USER:$DATABASE_PASSWORD@$DATABASE_HOST:$DATABASE_PORT/$DATABASE_NAME
+          DATABASE_URL_TEST=postgresql+psycopg://$DATABASE_USER:$DATABASE_PASSWORD@$DATABASE_HOST:$DATABASE_PORT/$POSTGRES_TEST_DB
           EOF
       - name: Spin up docker
         run: docker compose up -d

@@ -3,6 +3,8 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment:
+      name: testing
     strategy:
       matrix:
         python-version: ["3.13"]

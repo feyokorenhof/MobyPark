@@ -8,10 +8,9 @@ from app.models.user import User
 
 
 class ReservationStatus(str, enum.Enum):
-    HOLD = "HOLD"
-    CONFIRMED = "CONFIRMED"
-    CANCELLED = "CANCELLED"
-    EXPIRED = "EXPIRED"
+    pending = "pending"
+    confirmed = "confirmed"
+    cancelled = "cancelled"
 
 
 class Reservation(Base, TimestampMixin):

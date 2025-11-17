@@ -1,4 +1,5 @@
 from typing import AsyncGenerator
+import asyncio
 import pytest
 import httpx
 import os
@@ -53,10 +54,37 @@ async def async_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
+@pytest.fixture(scope="session", autouse=True)
+def reset_test_database_once():
+    """
+    Drop + recreate all tables in the TEST database once
+    before the test session starts (both locally and in CI).
+    Synchronous wrapper so it doesn't depend on anyio_backend.
+    """
+
+    async def _reset():
+        engine = create_async_engine(TEST_DB_URL, future=True)
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+        await engine.dispose()
+
+    asyncio.run(_reset())
+    yield
+
+
 @pytest.fixture
 async def user_in_db(async_session: AsyncSession):
     email = "test@test.com"
-    user = User(
+
+    # check if it already exists
+    result = await async_session.execute(select(User).where(User.email == email))
+    existing_user = result.scalar_one_or_none()
+
+    if existing_user:
+        return existing_user
+
+    new_user = User(
         username="TestUser",
         password_hash="test",
         name="Test",
@@ -66,17 +94,11 @@ async def user_in_db(async_session: AsyncSession):
         active=True,
         birth_year=2001,
     )
-    # check if it already exists
-    result = await async_session.execute(select(User).where(User.email == email))
-    user = result.scalar_one_or_none()
 
-    if user:
-        return user
-
-    async_session.add(user)
+    async_session.add(new_user)
     await async_session.flush()  # gets user.id
     await async_session.commit()
-    return user
+    return new_user
 
 
 @pytest.fixture

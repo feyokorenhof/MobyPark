@@ -69,7 +69,7 @@ async def add_reservation(
         ends_at=end,
         user_id=payload.user_id,
         parking_lot_id=payload.parking_lot_id,
-        status=ReservationStatus.CONFIRMED,
+        status=ReservationStatus.confirmed,
     )
     db.add(new_res)
     await db.flush()  # get PK

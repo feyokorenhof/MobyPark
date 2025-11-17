@@ -2,7 +2,9 @@ from typing import TYPE_CHECKING
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Boolean
 from app.db.base import Base, TimestampMixin
-
+from datetime import datetime
+from app.models.vehicle import Vehicle
+from app.models.payment import Payment
 
 # --- help linters : circular-safe imports ---
 if TYPE_CHECKING:
@@ -26,3 +28,9 @@ class User(Base, TimestampMixin):
         back_populates="user",
         passive_deletes=True,
     )
+    vehicles: Mapped[list["Vehicle"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    payments: Mapped[list["Payment"]] = relationship(back_populates="user", cascade="all, delete-orphan")

@@ -1,10 +1,11 @@
-"""Renamed reservation status on reservations
+"""initial schema
 
-Revision ID: 3423fa93e799
-Revises: fa748de94bf2
-Create Date: 2025-11-17 11:53:40.877340
+Revision ID: b96a30896c37
+Revises:
+Create Date: 2025-11-18 00:37:16.733559
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -12,8 +13,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '3423fa93e799'
-down_revision: Union[str, None] = 'fa748de94bf2'
+revision: str = "b96a30896c37"
+down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

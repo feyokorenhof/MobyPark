@@ -1,13 +1,30 @@
 from pydantic import BaseModel, ConfigDict
+from datetime import datetime
 
 
 class ParkingLotIn(BaseModel):
     name: str
-    timezone: str
+    location: str
+    address: str
+    capacity: int
+    reserved: int
+    tariff: float
+    daytariff: float
+    created_at: datetime
+    latitude: float
+    longitude: float
 
 
 class ParkingLotOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     name: str
-    timezone: str
+    location: str
+    address: str
+    capacity: int
+    reserved: int
+    tariff: float
+    daytariff: float
+    created_at: datetime
+    latitude: float
+    longitude: float

@@ -34,8 +34,8 @@ async def add_reservation(
     payload: ReservationIn, db: AsyncSession = Depends(get_session)
 ):
     # 1) Normalize datetimes (prefer timezone-aware UTC)
-    start = payload.starts_at
-    end = payload.ends_at
+    start = payload.start_time
+    end = payload.end_time
 
     # If naive, assume UTC (adjust to your needs)
     if start.tzinfo is None:
@@ -53,7 +53,7 @@ async def add_reservation(
         exists().where(
             and_(
                 Reservation.parking_lot_id == payload.parking_lot_id,
-                ~((Reservation.ends_at <= start) | (Reservation.starts_at >= end)),
+                ~((Reservation.end_time <= start) | (Reservation.start_time >= end)),
             )
         )
     )
@@ -65,11 +65,13 @@ async def add_reservation(
 
     # 4) Create + persist
     new_res = Reservation(
-        starts_at=start,
-        ends_at=end,
+        start_time=start,
+        end_time=end,
         user_id=payload.user_id,
         parking_lot_id=payload.parking_lot_id,
+        vehicle_id=payload.vehicle_id,
         status=ReservationStatus.confirmed,
+        cost=payload.cost,
     )
     db.add(new_res)
     await db.flush()  # get PK

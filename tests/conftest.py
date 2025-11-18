@@ -3,6 +3,8 @@ import asyncio
 import pytest
 import httpx
 import os
+import string
+import random
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from app.main import app
@@ -10,6 +12,7 @@ from app.db.base import Base
 from app.db import session as db_session
 from app.models.parking_lot import ParkingLot
 from app.models.user import User
+from app.models.vehicle import Vehicle
 
 TEST_DB_URL = os.getenv(
     "DATABASE_URL_TEST",
@@ -103,8 +106,36 @@ async def user_in_db(async_session: AsyncSession):
 
 @pytest.fixture
 async def lot_in_db(async_session: AsyncSession):
-    lot = ParkingLot(name="ParkingLot Test", timezone="CET")
+    lot = ParkingLot(
+        name="TestLot",
+        location="Rotterdam",
+        address="Wijnhaven 107",
+        capacity=5,
+        reserved=0,
+        tariff=5.0,
+        daytariff=30.0,
+        latitude=51.926517,
+        longitude=4.462456,
+    )
     async_session.add(lot)
     await async_session.flush()
     await async_session.commit()
     return lot
+
+
+@pytest.fixture
+async def vehicle_in_db(async_session: AsyncSession, user_in_db: User):
+    vehicle = Vehicle(
+        user_id=user_in_db.id,
+        license_plate="".join(
+            random.choices(string.ascii_uppercase + string.digits, k=6)
+        ),
+        make="BMW",
+        model="M5",
+        color="Black",
+        year=2020,
+    )
+    async_session.add(vehicle)
+    await async_session.flush()
+    await async_session.commit()
+    return vehicle

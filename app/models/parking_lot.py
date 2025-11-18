@@ -1,4 +1,4 @@
-from sqlalchemy import String, Integer, Float, DateTime
+from sqlalchemy import String, Integer, Float, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from app.db.base import Base
@@ -16,10 +16,14 @@ class ParkingLot(Base):
     reserved: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     tariff: Mapped[float] = mapped_column(Float, nullable=False)
     daytariff: Mapped[float] = mapped_column(Float, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),  # let DB set it
+    )
 
     latitude: Mapped[float] = mapped_column(Float, nullable=False)
     longitude: Mapped[float] = mapped_column(Float, nullable=False)
 
-    reservations: Mapped[list["Reservation"]] = relationship(back_populates="parking_lot", passive_deletes=True)
-
+    reservations: Mapped[list["Reservation"]] = relationship(
+        back_populates="parking_lot", passive_deletes=True
+    )

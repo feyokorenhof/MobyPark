@@ -33,7 +33,18 @@ async def add_parking_lot(
 ):
     # Create + persist
 
-    new_parking_lot = ParkingLot(name=payload.name, timezone=payload.timezone)
+    new_parking_lot = ParkingLot(
+        name=payload.name,
+        location=payload.location,
+        address=payload.address,
+        capacity=payload.capacity,
+        reserved=payload.reserved,
+        tariff=payload.tariff,
+        daytariff=payload.daytariff,
+        created_at=payload.created_at,
+        latitude=payload.latitude,
+        longitude=payload.longitude,
+    )
 
     db.add(new_parking_lot)
     await db.flush()  # get PK

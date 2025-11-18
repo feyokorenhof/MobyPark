@@ -13,10 +13,9 @@ if TYPE_CHECKING:
 
 
 class ReservationStatus(str, enum.Enum):
-    hold = "hold"
+    pending = "pending"
     confirmed = "confirmed"
     cancelled = "cancelled"
-    expired = "expired"
 
 
 class Reservation(Base, TimestampMixin):
@@ -42,7 +41,9 @@ class Reservation(Base, TimestampMixin):
         nullable=False,
     )
 
-    start_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    start_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
     end_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     status: Mapped[ReservationStatus] = mapped_column(
@@ -54,7 +55,15 @@ class Reservation(Base, TimestampMixin):
     cost: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
 
     # --- Relationships ---
-    user: Mapped["User"] = relationship(back_populates="reservations", passive_deletes=True)
-    vehicle: Mapped["Vehicle"] = relationship(back_populates="reservations", passive_deletes=True)
-    parking_lot: Mapped["ParkingLot"] = relationship(back_populates="reservations", passive_deletes=True)
-    payment: Mapped[Optional["Payment"]] = relationship(back_populates="reservation", uselist=False)
+    user: Mapped["User"] = relationship(
+        back_populates="reservations", passive_deletes=True
+    )
+    vehicle: Mapped["Vehicle"] = relationship(
+        back_populates="reservations", passive_deletes=True
+    )
+    parking_lot: Mapped["ParkingLot"] = relationship(
+        back_populates="reservations", passive_deletes=True
+    )
+    payment: Mapped[Optional["Payment"]] = relationship(
+        back_populates="reservation", uselist=False
+    )

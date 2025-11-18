@@ -11,17 +11,22 @@ class ReservationStatus(str, Enum):
 
 
 class ReservationIn(BaseModel):
-    starts_at: datetime
-    ends_at: datetime
     user_id: int
     parking_lot_id: int
+    vehicle_id: int
+    start_time: datetime
+    end_time: datetime
+    status: ReservationStatus
+    cost: float
 
 
 class ReservationOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
-    starts_at: datetime
-    ends_at: datetime
     user_id: int
     parking_lot_id: int
-    status: ReservationStatus = ReservationStatus.pending
+    vehicle_id: int
+    start_time: datetime
+    end_time: datetime
+    status: ReservationStatus
+    cost: float

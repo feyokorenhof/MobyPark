@@ -1,7 +1,10 @@
 from typing import AsyncGenerator
+import asyncio
 import pytest
 import httpx
 import os
+import string
+import random
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from app.main import app
@@ -9,6 +12,7 @@ from app.db.base import Base
 from app.db import session as db_session
 from app.models.parking_lot import ParkingLot
 from app.models.user import User
+from app.models.vehicle import Vehicle
 
 TEST_DB_URL = os.getenv(
     "DATABASE_URL_TEST",
@@ -53,10 +57,37 @@ async def async_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
+@pytest.fixture(scope="session", autouse=True)
+def reset_test_database_once():
+    """
+    Drop + recreate all tables in the TEST database once
+    before the test session starts (both locally and in CI).
+    Synchronous wrapper so it doesn't depend on anyio_backend.
+    """
+
+    async def _reset():
+        engine = create_async_engine(TEST_DB_URL, future=True)
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+        await engine.dispose()
+
+    asyncio.run(_reset())
+    yield
+
+
 @pytest.fixture
 async def user_in_db(async_session: AsyncSession):
     email = "test@test.com"
-    user = User(
+
+    # check if it already exists
+    result = await async_session.execute(select(User).where(User.email == email))
+    existing_user = result.scalar_one_or_none()
+
+    if existing_user:
+        return existing_user
+
+    new_user = User(
         username="TestUser",
         password_hash="test",
         name="Test",
@@ -66,23 +97,45 @@ async def user_in_db(async_session: AsyncSession):
         active=True,
         birth_year=2001,
     )
-    # check if it already exists
-    result = await async_session.execute(select(User).where(User.email == email))
-    user = result.scalar_one_or_none()
 
-    if user:
-        return user
-
-    async_session.add(user)
+    async_session.add(new_user)
     await async_session.flush()  # gets user.id
     await async_session.commit()
-    return user
+    return new_user
 
 
 @pytest.fixture
 async def lot_in_db(async_session: AsyncSession):
-    lot = ParkingLot(name="ParkingLot Test", timezone="CET")
+    lot = ParkingLot(
+        name="TestLot",
+        location="Rotterdam",
+        address="Wijnhaven 107",
+        capacity=5,
+        reserved=0,
+        tariff=5.0,
+        daytariff=30.0,
+        latitude=51.926517,
+        longitude=4.462456,
+    )
     async_session.add(lot)
     await async_session.flush()
     await async_session.commit()
     return lot
+
+
+@pytest.fixture
+async def vehicle_in_db(async_session: AsyncSession, user_in_db: User):
+    vehicle = Vehicle(
+        user_id=user_in_db.id,
+        license_plate="".join(
+            random.choices(string.ascii_uppercase + string.digits, k=6)
+        ),
+        make="BMW",
+        model="M5",
+        color="Black",
+        year=2020,
+    )
+    async_session.add(vehicle)
+    await async_session.flush()
+    await async_session.commit()
+    return vehicle

@@ -10,7 +10,6 @@ class ParkingLotIn(BaseModel):
     reserved: int
     tariff: float
     daytariff: float
-    created_at: datetime
     latitude: float
     longitude: float
 
@@ -25,6 +24,6 @@ class ParkingLotOut(BaseModel):
     reserved: int
     tariff: float
     daytariff: float
-    created_at: datetime
     latitude: float
     longitude: float
+    created_at: datetime

@@ -41,7 +41,6 @@ async def add_parking_lot(
         reserved=payload.reserved,
         tariff=payload.tariff,
         daytariff=payload.daytariff,
-        created_at=payload.created_at,
         latitude=payload.latitude,
         longitude=payload.longitude,
     )

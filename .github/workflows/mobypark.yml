@@ -2,7 +2,7 @@ name: MobyPark
 on: [push, pull_request]
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     environment:
       name: testing
     strategy:

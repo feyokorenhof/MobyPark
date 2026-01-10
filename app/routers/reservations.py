@@ -1,12 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.schemas.reservations import ReservationIn, ReservationOut
-from app.services.exceptions import (
-    InvalidTimeRange,
-    ReservationNotFound,
-    ReservationOverlap,
-)
 from app.services.reservations import create_reservation, retrieve_reservation
 
 
@@ -19,11 +14,7 @@ router = APIRouter()
     status_code=status.HTTP_200_OK,
 )
 async def get_reservation(reservation_id: int, db: AsyncSession = Depends(get_session)):
-    try:
-        reservation = await retrieve_reservation(db, reservation_id)
-    except ReservationNotFound:
-        raise HTTPException(status_code=404, detail="Reservation Not Found!")
-
+    reservation = await retrieve_reservation(db, reservation_id)
     return ReservationOut.model_validate(reservation)
 
 
@@ -31,13 +22,6 @@ async def get_reservation(reservation_id: int, db: AsyncSession = Depends(get_se
 async def add_reservation(
     payload: ReservationIn, db: AsyncSession = Depends(get_session)
 ):
-    try:
-        # app.services.reservation.py
-        new_res = await create_reservation(db, payload)
-    except InvalidTimeRange:
-        raise HTTPException(status_code=422, detail="end_time must be after start_time")
-    except ReservationOverlap:
-        raise HTTPException(
-            status_code=409, detail="Time slot overlaps an existing reservation"
-        )
+    # app.services.reservation.py
+    new_res = await create_reservation(db, payload)
     return ReservationOut.model_validate(new_res)

@@ -12,3 +12,13 @@ class ReservationNotFound(ReservationError):
 
 class InvalidTimeRange(ReservationError):
     pass
+
+
+# Parking lots
+#
+class ParkingLotError(Exception):
+    pass
+
+
+class ParkingLotNotFound(ParkingLotError):
+    pass

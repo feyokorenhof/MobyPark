@@ -16,8 +16,6 @@ class ReservationIn(BaseModel):
     vehicle_id: int
     planned_start: datetime
     planned_end: datetime
-    status: ReservationStatus
-    cost: float
 
 
 class ReservationOut(BaseModel):
@@ -29,4 +27,4 @@ class ReservationOut(BaseModel):
     planned_start: datetime
     planned_end: datetime
     status: ReservationStatus
-    cost: float
+    quoted_cost: float

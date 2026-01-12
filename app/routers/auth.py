@@ -18,9 +18,9 @@ async def register(payload: RegisterIn, db: AsyncSession = Depends(get_session))
 
 @router.post("/login", response_model=LoginOut, status_code=status.HTTP_200_OK)
 async def login(payload: LoginIn, db: AsyncSession = Depends(get_session)):
-    return login_account(db, payload)
+    return await login_account(db, payload)
 
 
 @router.get("/users/{user_id}", response_model=UserOut, status_code=status.HTTP_200_OK)
 async def user(user_id: int, db: AsyncSession = Depends(get_session)):
-    return get_user(db, user_id)
+    return await get_user(db, user_id)

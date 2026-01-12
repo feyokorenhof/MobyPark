@@ -3,6 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from app.db.base import Base
 from app.models.reservation import Reservation
+from app.models.parking_session import ParkingSession
 
 
 class ParkingLot(Base):
@@ -25,5 +26,9 @@ class ParkingLot(Base):
     longitude: Mapped[float] = mapped_column(Float, nullable=False)
 
     reservations: Mapped[list["Reservation"]] = relationship(
+        back_populates="parking_lot", passive_deletes=True
+    )
+
+    sessions: Mapped[list["ParkingSession"]] = relationship(
         back_populates="parking_lot", passive_deletes=True
     )

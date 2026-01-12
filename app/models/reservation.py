@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from app.models.user import User
     from app.models.vehicle import Vehicle
     from app.models.parking_lot import ParkingLot
+    from app.models.parking_session import ParkingSession
 
 
 class ReservationChannel(str, enum.Enum):
@@ -134,4 +135,6 @@ class Reservation(Base, TimestampMixin):
     )
 
     # Sessions created from this reservation (often 0..1, but allow 1..n to be safe)
-    # sessions: Mapped[list["ParkingSession"]] = relationship(back_populates="reservation")
+    sessions: Mapped[list["ParkingSession"]] = relationship(
+        back_populates="reservation"
+    )

@@ -7,6 +7,7 @@ from app.db.base import Base
 if TYPE_CHECKING:
     from app.models.user import User
     from app.models.reservation import Reservation
+    from app.models.parking_session import ParkingSession
 
 
 class Payment(Base):
@@ -18,6 +19,13 @@ class Payment(Base):
     )
     reservation_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("reservations.id", ondelete="SET NULL"), index=True, nullable=True
+    )
+
+    session_id: Mapped[int] = mapped_column(
+        ForeignKey("parking_sessions.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+        index=True,
     )
 
     transaction: Mapped[str] = mapped_column(String(100), unique=True, index=True)
@@ -37,3 +45,5 @@ class Payment(Base):
     reservation: Mapped[Optional["Reservation"]] = relationship(
         back_populates="payment"
     )
+    # Sessions with this payment
+    session: Mapped["ParkingSession"] = relationship(back_populates="payment")

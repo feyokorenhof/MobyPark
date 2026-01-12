@@ -57,13 +57,13 @@ async def create_reservation(db: AsyncSession, payload: ReservationIn) -> Reserv
 
     # 4) Create + persist
     new_res = Reservation(
-        start_time=start,
-        end_time=end,
+        planned_start=start,
+        planned_end=end,
         user_id=payload.user_id,
         parking_lot_id=payload.parking_lot_id,
         vehicle_id=payload.vehicle_id,
         status=ReservationStatus.confirmed,
-        cost=payload.cost,
+        quoted_cost=20.0,
     )
     db.add(new_res)
     await db.flush()  # get PK

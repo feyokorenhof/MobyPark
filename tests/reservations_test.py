@@ -23,7 +23,7 @@ async def test_create_reservation(
             "parking_lot_id": lot_in_db.id,
             "vehicle_id": vehicle_in_db.id,
             "status": ReservationStatus.pending,
-            "cost": 20.0,
+            "quoted_cost": 20.0,
         },
     )
 
@@ -47,7 +47,6 @@ async def test_create_reservation_overlap(
             "parking_lot_id": lot_in_db.id,
             "vehicle_id": vehicle_in_db.id,
             "status": ReservationStatus.pending,
-            "cost": 20.0,
         },
     )
     # Expect 201 (Created)
@@ -62,7 +61,6 @@ async def test_create_reservation_overlap(
             "parking_lot_id": lot_in_db.id,
             "vehicle_id": vehicle_in_db.id,
             "status": ReservationStatus.pending,
-            "cost": 20.0,
         },
     )
     # Expect 409 (Conflict) because of overlapping times

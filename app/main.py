@@ -62,7 +62,7 @@ async def parking_lot_not_found_handler(_, exc: ParkingLotNotFound):
 @app.exception_handler(AccountAlreadyExists)
 async def account_already_exists_handler(_, exc: AccountAlreadyExists):
     return JSONResponse(
-        status_code=403,
+        status_code=409,
         content={"detail": "Account already exists"},
     )
 

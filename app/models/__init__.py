@@ -1,5 +1,7 @@
 from .user import User  # noqa
 from .reservation import Reservation  # noqa
 from .parking_lot import ParkingLot  # noqa
-from .vehicle import Vehicle # noqa
-from .payment import Payment # noqa
+from .vehicle import Vehicle  # noqa
+from .payment import Payment  # noqa
+from .discount_code import DiscountCode  # noqa
+from .discount_redemption import DiscountRedemption  # noqa

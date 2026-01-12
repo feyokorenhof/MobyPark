@@ -1,6 +1,7 @@
 from enum import Enum
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
+from typing import Optional
 
 
 # Mirror your SQLA Enum so input can be validated
@@ -18,6 +19,7 @@ class ReservationIn(BaseModel):
     end_time: datetime
     status: ReservationStatus
     cost: float
+    discount_code: Optional[str] = None
 
 
 class ReservationOut(BaseModel):
@@ -30,3 +32,6 @@ class ReservationOut(BaseModel):
     end_time: datetime
     status: ReservationStatus
     cost: float
+    original_cost: float
+    discount_amount: float
+    discount_code_id: Optional[int] = None

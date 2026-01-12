@@ -1,6 +1,7 @@
 from datetime import timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import and_, exists, select
+
 from app.models.reservation import ReservationStatus
 from app.schemas.reservations import ReservationIn
 from app.models import Reservation
@@ -9,6 +10,9 @@ from app.services.exceptions import (
     ReservationNotFound,
     ReservationOverlap,
 )
+
+from app.services.discounts import apply_discount
+from app.services.discount_redemption import redeem_discount_code
 
 
 async def retrieve_reservation(db: AsyncSession, reservation_id: int):
@@ -19,6 +23,8 @@ async def retrieve_reservation(db: AsyncSession, reservation_id: int):
 
     if reservation is None:
         raise ReservationNotFound()
+
+    return reservation
 
 
 async def create_reservation(db: AsyncSession, payload: ReservationIn) -> Reservation:
@@ -50,6 +56,14 @@ async def create_reservation(db: AsyncSession, payload: ReservationIn) -> Reserv
     if overlap:
         raise ReservationOverlap()
 
+    # NEW: apply discount server-side (keep dc so we can redeem it)
+    original_cost = payload.cost
+    final_cost, discount_amount, discount_code_id, dc = await apply_discount(
+        db=db,
+        original_cost=original_cost,
+        discount_code_str=payload.discount_code,
+    )
+
     # 4) Create + persist
     new_res = Reservation(
         start_time=start,
@@ -58,10 +72,25 @@ async def create_reservation(db: AsyncSession, payload: ReservationIn) -> Reserv
         parking_lot_id=payload.parking_lot_id,
         vehicle_id=payload.vehicle_id,
         status=ReservationStatus.confirmed,
-        cost=payload.cost,
+        # store discount results
+        cost=final_cost,
+        original_cost=original_cost,
+        discount_amount=discount_amount,
+        discount_code_id=discount_code_id,
     )
+
     db.add(new_res)
-    await db.flush()  # get PK
+    await db.flush()  # get PK (new_res.id)
+
+    # NEW: mark discount as used (redemption + uses_count) BEFORE commit
+    if dc:
+        await redeem_discount_code(
+            db=db,
+            dc=dc,
+            user_id=payload.user_id,
+            reservation_id=new_res.id,
+        )
+
     await db.commit()
     await db.refresh(new_res)
     return new_res

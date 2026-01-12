@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from app.models.user import User
     from app.models.vehicle import Vehicle
     from app.models.parking_lot import ParkingLot
+    from app.models.discount_code import DiscountCode
 
 
 class ReservationStatus(str, enum.Enum):
@@ -54,6 +55,15 @@ class Reservation(Base, TimestampMixin):
 
     cost: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
 
+    discount_code_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("discount_codes.id", ondelete="SET NULL"),
+        index=True,
+        nullable=True,
+    )
+
+    original_cost: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    discount_amount: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+
     # --- Relationships ---
     user: Mapped["User"] = relationship(
         back_populates="reservations", passive_deletes=True
@@ -66,4 +76,7 @@ class Reservation(Base, TimestampMixin):
     )
     payment: Mapped[Optional["Payment"]] = relationship(
         back_populates="reservation", uselist=False
+    )
+    discount_code: Mapped[Optional["DiscountCode"]] = relationship(
+        "DiscountCode", passive_deletes=True
     )

@@ -3,7 +3,7 @@ from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
 
-# Mirror your SQLA Enum so input can be validated
+# Mirror SQLA Enum so input can be validated
 class ReservationStatus(str, Enum):
     pending = "pending"
     confirmed = "confirmed"
@@ -14,8 +14,8 @@ class ReservationIn(BaseModel):
     user_id: int
     parking_lot_id: int
     vehicle_id: int
-    start_time: datetime
-    end_time: datetime
+    planned_start: datetime
+    planned_end: datetime
     status: ReservationStatus
     cost: float
 
@@ -26,7 +26,7 @@ class ReservationOut(BaseModel):
     user_id: int
     parking_lot_id: int
     vehicle_id: int
-    start_time: datetime
-    end_time: datetime
+    planned_start: datetime
+    planned_end: datetime
     status: ReservationStatus
     cost: float

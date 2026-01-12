@@ -44,3 +44,12 @@ class UserError(Exception):
 
 class UserNotFound(UserError):
     pass
+
+
+# Sessions
+class SessionError(Exception):
+    pass
+
+
+class SessionNotFound(SessionError):
+    pass

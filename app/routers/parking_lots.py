@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from app.db.session import get_session
-from app.models.parking_lot import ParkingLot
 
 from app.schemas.parking_lot import ParkingLotIn, ParkingLotOut
+from app.services.parking_lots import create_parking_lot, retrieve_parking_lot
 
 
 router = APIRouter()
@@ -16,14 +15,7 @@ router = APIRouter()
     status_code=status.HTTP_200_OK,
 )
 async def get_parking_lot(parking_lot_id: int, db: AsyncSession = Depends(get_session)):
-    existing = await db.execute(
-        select(ParkingLot).where(ParkingLot.id == parking_lot_id)
-    )
-    parking_lot = existing.scalar_one_or_none()
-
-    if parking_lot is None:
-        raise HTTPException(status_code=404, detail="Parking Lot Not Found!")
-
+    parking_lot = retrieve_parking_lot(db, parking_lot_id)
     return ParkingLotOut.model_validate(parking_lot)
 
 
@@ -31,23 +23,5 @@ async def get_parking_lot(parking_lot_id: int, db: AsyncSession = Depends(get_se
 async def add_parking_lot(
     payload: ParkingLotIn, db: AsyncSession = Depends(get_session)
 ):
-    # Create + persist
-
-    new_parking_lot = ParkingLot(
-        name=payload.name,
-        location=payload.location,
-        address=payload.address,
-        capacity=payload.capacity,
-        reserved=payload.reserved,
-        tariff=payload.tariff,
-        daytariff=payload.daytariff,
-        latitude=payload.latitude,
-        longitude=payload.longitude,
-    )
-
-    db.add(new_parking_lot)
-    await db.flush()  # get PK
-    await db.commit()
-    await db.refresh(new_parking_lot)
-
+    new_parking_lot = create_parking_lot(db, payload)
     return ParkingLotOut.model_validate(new_parking_lot)

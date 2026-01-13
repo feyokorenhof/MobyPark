@@ -1,11 +1,15 @@
 from fastapi import FastAPI
 from starlette.responses import JSONResponse
 from app.core.config import settings
-from app.routers import auth, parking_lots, reservations
+from app.routers import auth, parking_lots, reservations, gate
 from app.services.exceptions import (
+    AccountAlreadyExists,
+    InvalidCredentials,
     InvalidTimeRange,
+    ParkingLotNotFound,
     ReservationNotFound,
     ReservationOverlap,
+    UserNotFound,
 )
 
 
@@ -20,6 +24,7 @@ async def health():
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(reservations.router, prefix="/reservations", tags=["reservations"])
 app.include_router(parking_lots.router, prefix="/parking_lots", tags=["parking_lots"])
+app.include_router(gate.router, prefix="/gate", tags=["parking_sessions", "gate"])
 
 
 # Handle our exceptions
@@ -44,4 +49,36 @@ async def invalid_time_range_handler(_, exc):
     return JSONResponse(
         status_code=422,
         content={"detail": "end_time must be after start_time"},
+    )
+
+
+@app.exception_handler(ParkingLotNotFound)
+async def parking_lot_not_found_handler(_, exc: ParkingLotNotFound):
+    return JSONResponse(
+        status_code=404,
+        content={"detail": "Parking lot could not be found"},
+    )
+
+
+@app.exception_handler(AccountAlreadyExists)
+async def account_already_exists_handler(_, exc: AccountAlreadyExists):
+    return JSONResponse(
+        status_code=409,
+        content={"detail": "Account already exists"},
+    )
+
+
+@app.exception_handler(InvalidCredentials)
+async def invalid_credentials_handler(_, exc: InvalidCredentials):
+    return JSONResponse(
+        status_code=401,
+        content={"detail": "Invalid credentials"},
+    )
+
+
+@app.exception_handler(UserNotFound)
+async def user_not_found_handler(_, exc: UserNotFound):
+    return JSONResponse(
+        status_code=404,
+        content={"detail": "User not found"},
     )

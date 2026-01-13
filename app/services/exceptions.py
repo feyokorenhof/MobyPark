@@ -1,3 +1,4 @@
+# Reservations
 class ReservationError(Exception):
     pass
 
@@ -15,10 +16,40 @@ class InvalidTimeRange(ReservationError):
 
 
 # Parking lots
-#
 class ParkingLotError(Exception):
     pass
 
 
 class ParkingLotNotFound(ParkingLotError):
+    pass
+
+
+# Auth
+class AuthError(Exception):
+    pass
+
+
+class AccountAlreadyExists(AuthError):
+    pass
+
+
+class InvalidCredentials(AuthError):
+    pass
+
+
+# Users
+class UserError(Exception):
+    pass
+
+
+class UserNotFound(UserError):
+    pass
+
+
+# Sessions
+class SessionError(Exception):
+    pass
+
+
+class SessionNotFound(SessionError):
     pass

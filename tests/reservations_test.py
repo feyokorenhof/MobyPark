@@ -17,13 +17,13 @@ async def test_create_reservation(
     resp = await async_client.post(
         "/reservations",
         json={
-            "start_time": "2025-11-17 11:27:42.402",
-            "end_time": "2025-11-17 12:27:42.402",
+            "planned_start": "2025-11-17 11:27:42.402",
+            "planned_end": "2025-11-17 12:27:42.402",
             "user_id": user_in_db.id,
             "parking_lot_id": lot_in_db.id,
             "vehicle_id": vehicle_in_db.id,
             "status": ReservationStatus.pending,
-            "cost": 20.0,
+            "quoted_cost": 20.0,
         },
     )
 
@@ -41,13 +41,12 @@ async def test_create_reservation_overlap(
     resp1 = await async_client.post(
         "/reservations",
         json={
-            "start_time": "2025-11-17 11:27:42.402",
-            "end_time": "2025-11-17 12:27:42.402",
+            "planned_start": "2025-11-17 11:27:42.402",
+            "planned_end": "2025-11-17 12:27:42.402",
             "user_id": user_in_db.id,
             "parking_lot_id": lot_in_db.id,
             "vehicle_id": vehicle_in_db.id,
             "status": ReservationStatus.pending,
-            "cost": 20.0,
         },
     )
     # Expect 201 (Created)
@@ -56,13 +55,12 @@ async def test_create_reservation_overlap(
     resp2 = await async_client.post(
         "/reservations",
         json={
-            "start_time": "2025-11-17 11:27:42.402",
-            "end_time": "2025-11-17 12:27:42.402",
+            "planned_start": "2025-11-17 11:27:42.402",
+            "planned_end": "2025-11-17 12:27:42.402",
             "user_id": user_in_db.id,
             "parking_lot_id": lot_in_db.id,
             "vehicle_id": vehicle_in_db.id,
             "status": ReservationStatus.pending,
-            "cost": 20.0,
         },
     )
     # Expect 409 (Conflict) because of overlapping times

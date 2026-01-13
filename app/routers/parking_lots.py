@@ -15,7 +15,7 @@ router = APIRouter()
     status_code=status.HTTP_200_OK,
 )
 async def get_parking_lot(parking_lot_id: int, db: AsyncSession = Depends(get_session)):
-    parking_lot = retrieve_parking_lot(db, parking_lot_id)
+    parking_lot = await retrieve_parking_lot(db, parking_lot_id)
     return ParkingLotOut.model_validate(parking_lot)
 
 
@@ -23,5 +23,5 @@ async def get_parking_lot(parking_lot_id: int, db: AsyncSession = Depends(get_se
 async def add_parking_lot(
     payload: ParkingLotIn, db: AsyncSession = Depends(get_session)
 ):
-    new_parking_lot = create_parking_lot(db, payload)
+    new_parking_lot = await create_parking_lot(db, payload)
     return ParkingLotOut.model_validate(new_parking_lot)

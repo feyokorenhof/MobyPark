@@ -1,4 +1,6 @@
 from datetime import timezone
+from datetime import datetime
+from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import and_, exists, select
 from app.models.reservation import ReservationStatus
@@ -23,8 +25,8 @@ async def retrieve_reservation(db: AsyncSession, reservation_id: int):
 
 async def create_reservation(db: AsyncSession, payload: ReservationIn) -> Reservation:
     # 1) Normalize datetimes (prefer timezone-aware UTC)
-    start = payload.start_time
-    end = payload.end_time
+    start = payload.planned_start
+    end = payload.planned_end
 
     # If naive, assume UTC (adjust to your needs)
     if start.tzinfo is None:
@@ -42,7 +44,10 @@ async def create_reservation(db: AsyncSession, payload: ReservationIn) -> Reserv
         exists().where(
             and_(
                 Reservation.parking_lot_id == payload.parking_lot_id,
-                ~((Reservation.end_time <= start) | (Reservation.start_time >= end)),
+                ~(
+                    (Reservation.planned_end <= start)
+                    | (Reservation.planned_start >= end)
+                ),
             )
         )
     )
@@ -52,16 +57,30 @@ async def create_reservation(db: AsyncSession, payload: ReservationIn) -> Reserv
 
     # 4) Create + persist
     new_res = Reservation(
-        start_time=start,
-        end_time=end,
+        planned_start=start,
+        planned_end=end,
         user_id=payload.user_id,
         parking_lot_id=payload.parking_lot_id,
         vehicle_id=payload.vehicle_id,
         status=ReservationStatus.confirmed,
-        cost=payload.cost,
+        quoted_cost=20.0,
     )
     db.add(new_res)
     await db.flush()  # get PK
     await db.commit()
     await db.refresh(new_res)
     return new_res
+
+
+async def try_get_valid_reservation_by_plate(
+    db: AsyncSession, lot_id: int, plate: str, now: datetime
+) -> Optional[Reservation]:
+    q = select(Reservation).where(
+        Reservation.parking_lot_id == lot_id,
+        Reservation.license_plate == plate,
+        Reservation.status == ReservationStatus.confirmed,
+        Reservation.planned_start <= now,
+        Reservation.planned_end >= now,
+    )
+    res = await db.execute(q)
+    return res.scalar_one_or_none()

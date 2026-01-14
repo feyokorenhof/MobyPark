@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
@@ -13,8 +14,8 @@ class SessionStatus(str, Enum):
 
 class ParkingSessionIn(BaseModel):
     parking_lot_id: int
-    reservation_id: int
-    vehicle_id: int
+    reservation_id: Optional[int] = None
+    vehicle_id: Optional[int] = None
     license_plate: str
     entry_time: datetime
     entry_gate_id: int
@@ -24,8 +25,8 @@ class ParkingSessionOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     parking_lot_id: int
-    reservation_id: int
-    vehicle_id: int
+    reservation_id: Optional[int] = None
+    vehicle_id: Optional[int] = None
     license_plate: str
     entry_time: datetime
     entry_gate_id: int

@@ -5,6 +5,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.parking_session import ParkingSession, SessionStatus
 from app.models.reservation import Reservation
 from app.schemas.gate import GateEventIn
+from app.services.exceptions import ParkingSessionNotFound
+
+
+async def retrieve_parking_session(
+    db: AsyncSession, parking_session_id: int
+) -> ParkingSession:
+    existing = await db.execute(
+        select(ParkingSession).where(ParkingSession.id == parking_session_id)
+    )
+    session = existing.scalar_one_or_none()
+
+    if session is None:
+        raise ParkingSessionNotFound()
+
+    print(session)
+    return session
 
 
 async def close_session(

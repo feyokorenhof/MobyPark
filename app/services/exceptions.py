@@ -1,4 +1,6 @@
 # Reservations
+
+
 class ReservationError(Exception):
     pass
 
@@ -47,9 +49,9 @@ class UserNotFound(UserError):
 
 
 # Sessions
-class SessionError(Exception):
+class ParkingSessionError(Exception):
     pass
 
 
-class SessionNotFound(SessionError):
+class ParkingSessionNotFound(ParkingSessionError):
     pass

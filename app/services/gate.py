@@ -26,6 +26,7 @@ async def handle_gate_event(db: AsyncSession, payload: GateEventIn):
         # If there's already an active session, this is a duplicate entry hit
         if active_session is not None:
             return GateEventOut(
+                gate_id=payload.gate_id,
                 decision=GateDecision.deny,
                 reason="session_already_active",
                 session_id=active_session.id,
@@ -37,6 +38,7 @@ async def handle_gate_event(db: AsyncSession, payload: GateEventIn):
                 db, valid_reservation, payload
             )
             return GateEventOut(
+                gate_id=payload.gate_id,
                 decision=GateDecision.open,
                 reason="reservation_valid",
                 session_id=new_session.id,
@@ -46,6 +48,7 @@ async def handle_gate_event(db: AsyncSession, payload: GateEventIn):
         # No reservation -> treat as anonymous drive-up if allowed
         session = await create_session_anonymously(db, payload)
         return GateEventOut(
+            gate_id=payload.gate_id,
             decision=GateDecision.open,
             reason="anonymous_driveup_started",
             session_id=session.id,
@@ -56,13 +59,20 @@ async def handle_gate_event(db: AsyncSession, payload: GateEventIn):
         if not active_session:
             # TODO: ask PO if we let people out if they didn't have session
             # just log the anomaly
-            return GateEventOut(decision=GateDecision.open, reason="no_active_session")
+            return GateEventOut(
+                gate_id=payload.gate_id,
+                decision=GateDecision.open,
+                reason="no_active_session",
+            )
 
         await close_session(db, active_session, payload)
         return GateEventOut(
+            gate_id=payload.gate_id,
             decision=GateDecision.open,
             reason="session_closed",
             session_id=active_session.id,
         )
 
-    return GateEventOut(decision=GateDecision.deny, reason="invalid_direction")
+    return GateEventOut(
+        gate_id=payload.gate_id, decision=GateDecision.deny, reason="invalid_direction"
+    )

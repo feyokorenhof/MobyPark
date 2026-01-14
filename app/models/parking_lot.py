@@ -1,9 +1,12 @@
+from typing import TYPE_CHECKING
 from sqlalchemy import String, Integer, Float, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from app.db.base import Base
-from app.models.reservation import Reservation
-from app.models.parking_session import ParkingSession
+
+if TYPE_CHECKING:
+    from app.models.reservation import Reservation
+    from app.models.parking_session import ParkingSession
 
 
 class ParkingLot(Base):

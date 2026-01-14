@@ -10,9 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from app.main import app
 from app.db.base import Base
 from app.db import session as db_session
+from app.models.gate import Gate
 from app.models.parking_lot import ParkingLot
 from app.models.user import User
 from app.models.vehicle import Vehicle
+
 
 TEST_DB_URL = os.getenv(
     "DATABASE_URL_TEST",
@@ -139,3 +141,12 @@ async def vehicle_in_db(async_session: AsyncSession, user_in_db: User):
     await async_session.flush()
     await async_session.commit()
     return vehicle
+
+
+@pytest.fixture
+async def gate_in_db(async_session: AsyncSession, lot_in_db: ParkingLot):
+    gate = Gate(parking_lot_id=lot_in_db.id)
+    async_session.add(gate)
+    await async_session.flush()
+    await async_session.commit()
+    return gate

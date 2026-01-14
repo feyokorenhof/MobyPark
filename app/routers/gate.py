@@ -9,9 +9,10 @@ router = APIRouter()
 
 
 @router.post(
-    "/gate_id", response_model=GateEventOut, status_code=status.HTTP_201_CREATED
+    "/{gate_id}", response_model=GateEventOut, status_code=status.HTTP_201_CREATED
 )
 async def on_gate_event(
-    _: int, payload: GateEventIn, db: AsyncSession = Depends(get_session)
+    gate_id: int, payload: GateEventIn, db: AsyncSession = Depends(get_session)
 ):
+    print(payload)
     return await handle_gate_event(db, payload)

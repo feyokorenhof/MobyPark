@@ -1,8 +1,11 @@
+from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, Integer, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from app.db.base import Base
-from app.models.parking_lot import ParkingLot
+
+if TYPE_CHECKING:
+    from app.models.parking_lot import ParkingLot
 
 
 class Gate(Base):

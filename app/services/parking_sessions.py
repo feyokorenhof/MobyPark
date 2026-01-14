@@ -21,7 +21,7 @@ async def create_session_from_reservation(
     db: AsyncSession, reservation: Reservation, payload: GateEventIn
 ) -> ParkingSession:
     new_session = ParkingSession(
-        parking_lot_id=GateEventIn.parking_lot_id,
+        parking_lot_id=payload.parking_lot_id,
         reservation_id=reservation.id,
         vehicle_id=reservation.vehicle_id,
         license_plate=payload.license_plate,
@@ -39,7 +39,7 @@ async def create_session_anonymously(
     db: AsyncSession, payload: GateEventIn
 ) -> ParkingSession:
     new_session = ParkingSession(
-        parking_lot_id=GateEventIn.parking_lot_id,
+        parking_lot_id=payload.parking_lot_id,
         license_plate=payload.license_plate,
         entry_time=payload.timestamp,
         entry_gate_id=payload.gate_id,

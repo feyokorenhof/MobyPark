@@ -23,6 +23,7 @@ class GateDecision(str, Enum):
 
 
 class GateEventOut(BaseModel):
+    gate_id: int
     decision: GateDecision
     reason: Optional[str] = None
 

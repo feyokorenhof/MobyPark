@@ -62,6 +62,7 @@ async def create_reservation(db: AsyncSession, payload: ReservationIn) -> Reserv
         user_id=payload.user_id,
         parking_lot_id=payload.parking_lot_id,
         vehicle_id=payload.vehicle_id,
+        license_plate=payload.license_plate,
         status=ReservationStatus.confirmed,
         quoted_cost=20.0,
     )

@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from typing import AsyncGenerator
 import asyncio
 import pytest
@@ -12,6 +13,7 @@ from app.db.base import Base
 from app.db import session as db_session
 from app.models.gate import Gate
 from app.models.parking_lot import ParkingLot
+from app.models.reservation import Reservation
 from app.models.user import User
 from app.models.vehicle import Vehicle
 
@@ -150,3 +152,24 @@ async def gate_in_db(async_session: AsyncSession, lot_in_db: ParkingLot):
     await async_session.flush()
     await async_session.commit()
     return gate
+
+
+@pytest.fixture
+async def reservation_in_db(
+    async_session: AsyncSession,
+    user_in_db: User,
+    lot_in_db: ParkingLot,
+    vehicle_in_db: Vehicle,
+):
+    reservation = Reservation(
+        planned_start=datetime.now(),
+        planned_end=datetime.now() + timedelta(hours=2),
+        user_id=user_in_db.id,
+        parking_lot_id=lot_in_db.id,
+        vehicle_id=vehicle_in_db.id,
+        license_plate=vehicle_in_db.license_plate,
+    )
+    async_session.add(reservation)
+    await async_session.flush()
+    await async_session.commit()
+    return reservation

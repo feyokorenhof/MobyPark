@@ -61,10 +61,7 @@ class Reservation(Base, TimestampMixin):
         nullable=True,
     )
 
-    # Always helpful for gate checks + audit (especially for anonymous)
-    license_plate: Mapped[Optional[str]] = mapped_column(
-        String(16), index=True, nullable=True
-    )
+    license_plate: Mapped[str] = mapped_column(String(16), index=True, nullable=False)
 
     planned_start: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False

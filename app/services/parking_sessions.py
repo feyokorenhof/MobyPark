@@ -39,7 +39,6 @@ async def create_session_from_reservation(
     new_session = ParkingSession(
         parking_lot_id=payload.parking_lot_id,
         reservation_id=reservation.id,
-        vehicle_id=reservation.vehicle_id,
         license_plate=payload.license_plate,
         entry_time=payload.timestamp,
         entry_gate_id=payload.gate_id,

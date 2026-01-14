@@ -22,6 +22,7 @@ async def test_create_reservation(
             "user_id": user_in_db.id,
             "parking_lot_id": lot_in_db.id,
             "vehicle_id": vehicle_in_db.id,
+            "license_plate": vehicle_in_db.license_plate,
             "status": ReservationStatus.pending,
             "quoted_cost": 20.0,
         },
@@ -46,6 +47,7 @@ async def test_create_reservation_overlap(
             "user_id": user_in_db.id,
             "parking_lot_id": lot_in_db.id,
             "vehicle_id": vehicle_in_db.id,
+            "license_plate": vehicle_in_db.license_plate,
             "status": ReservationStatus.pending,
         },
     )
@@ -60,6 +62,7 @@ async def test_create_reservation_overlap(
             "user_id": user_in_db.id,
             "parking_lot_id": lot_in_db.id,
             "vehicle_id": vehicle_in_db.id,
+            "license_plate": vehicle_in_db.license_plate,
             "status": ReservationStatus.pending,
         },
     )

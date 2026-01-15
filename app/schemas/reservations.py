@@ -11,7 +11,6 @@ class ReservationStatus(str, Enum):
 
 
 class ReservationIn(BaseModel):
-    user_id: int
     parking_lot_id: int
     vehicle_id: int
     license_plate: str

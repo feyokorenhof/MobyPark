@@ -1,9 +1,11 @@
 from datetime import datetime, timedelta, timezone
 import os
+from fastapi import Depends, HTTPException, status
 import jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.session import get_session
 from app.models.user import User
 from app.schemas.auth import LoginIn, LoginOut, RegisterIn, UserOut
 from app.services.exceptions import (
@@ -12,6 +14,7 @@ from app.services.exceptions import (
     UserNotFound,
 )
 from app.services.security import hash_password, needs_update, verify_password
+from fastapi.security import OAuth2PasswordBearer
 
 JWT_SECRET = os.getenv("JWT_SECRET", "dev-insecure-change-me")
 JWT_ALG = os.getenv("JWT_ALG", "HS256")
@@ -28,6 +31,50 @@ def create_access_token(sub: str) -> str:
     exp = now + timedelta(minutes=JWT_EXP_MIN)
     payload = {"sub": sub, "iat": int(now.timestamp()), "exp": int(exp.timestamp())}
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALG)
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: AsyncSession = Depends(get_session),
+) -> User:
+    unauthorized = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid or expired authentication token",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        # PyJWT verifies exp by default if present, unless we disable it in options.
+        payload = jwt.decode(
+            token,
+            JWT_SECRET,
+            algorithms=[JWT_ALG],
+            options={
+                "require": ["exp", "sub"],  # ensure these claims exist
+            },
+        )
+        sub = payload.get("sub")
+        user_id = int(sub)  # cast because sub is encoded as string
+
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except (jwt.InvalidTokenError, ValueError, TypeError):
+        # Invalid signature, malformed token, missing claims, non-int sub, etc.
+        raise unauthorized
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None or not user.active:
+        raise unauthorized
+
+    return user
 
 
 async def create_account(db: AsyncSession, payload: RegisterIn):

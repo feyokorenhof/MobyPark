@@ -1,6 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import AsyncGenerator
 import asyncio
+import jwt
 import pytest
 import httpx
 import os
@@ -16,6 +17,7 @@ from app.models.parking_lot import ParkingLot
 from app.models.reservation import Reservation
 from app.models.user import User
 from app.models.vehicle import Vehicle
+from app.services.auth import JWT_ALG, JWT_SECRET
 
 
 TEST_DB_URL = os.getenv(
@@ -81,31 +83,76 @@ def reset_test_database_once():
 
 
 @pytest.fixture
-async def user_in_db(async_session: AsyncSession):
-    email = "test@test.com"
-
-    # check if it already exists
+async def user_in_db(async_session: AsyncSession) -> User:
+    email = "user@test.com"
     result = await async_session.execute(select(User).where(User.email == email))
-    existing_user = result.scalar_one_or_none()
+    user = result.scalar_one_or_none()
 
-    if existing_user:
-        return existing_user
+    if user:
+        return user
 
-    new_user = User(
+    user = User(
         username="TestUser",
         password_hash="test",
-        name="Test",
+        name="Test user",
         email=email,
         phone="683713498",
-        role="User",
+        role="user",
+        active=True,
+        birth_year=2001,
+    )
+    async_session.add(user)
+    await async_session.commit()
+    await async_session.refresh(user)
+    return user
+
+
+@pytest.fixture
+async def test_admin(async_session: AsyncSession) -> User:
+    email = "admin@test.com"
+    result = await async_session.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+
+    if user:
+        return user
+
+    user = User(
+        username="TestAdmin",
+        password_hash="test",
+        name="Test user",
+        email=email,
+        phone="683713498",
+        role="user",
         active=True,
         birth_year=2001,
     )
 
-    async_session.add(new_user)
-    await async_session.flush()  # gets user.id
+    async_session.add(user)
     await async_session.commit()
-    return new_user
+    await async_session.refresh(user)
+    return user
+
+
+@pytest.fixture
+def token_for_user(user_in_db: User) -> str:
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": str(user_in_db.id),
+        "iat": int(now.timestamp()),
+        "exp": int((now + timedelta(minutes=30)).timestamp()),
+    }
+
+    token = jwt.encode(
+        payload,
+        JWT_SECRET,
+        algorithm=JWT_ALG,
+    )
+    return token
+
+
+@pytest.fixture
+def auth_headers(token_for_user: str) -> dict[str, str]:
+    return {"Authorization": f"Bearer {token_for_user}"}
 
 
 @pytest.fixture

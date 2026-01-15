@@ -4,26 +4,35 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import and_, exists, select
 from app.models.reservation import ReservationStatus
+from app.models.user import User
 from app.schemas.reservations import ReservationIn
 from app.models import Reservation
 from app.services.exceptions import (
+    InvalidCredentials,
     InvalidTimeRange,
     ReservationNotFound,
     ReservationOverlap,
 )
 
 
-async def retrieve_reservation(db: AsyncSession, reservation_id: int):
+async def retrieve_reservation(
+    db: AsyncSession, reservation_id: int, current_user: User
+) -> Reservation:
     existing = await db.execute(
         select(Reservation).where(Reservation.id == reservation_id)
     )
     reservation = existing.scalar_one_or_none()
-
     if reservation is None:
         raise ReservationNotFound()
 
+    if reservation.user_id != current_user.id:
+        raise InvalidCredentials()
+    return reservation
 
-async def create_reservation(db: AsyncSession, payload: ReservationIn) -> Reservation:
+
+async def create_reservation(
+    db: AsyncSession, payload: ReservationIn, current_user: User
+) -> Reservation:
     # 1) Normalize datetimes (prefer timezone-aware UTC)
     start = payload.planned_start
     end = payload.planned_end
@@ -59,7 +68,7 @@ async def create_reservation(db: AsyncSession, payload: ReservationIn) -> Reserv
     new_res = Reservation(
         planned_start=start,
         planned_end=end,
-        user_id=payload.user_id,
+        user_id=current_user.id,
         parking_lot_id=payload.parking_lot_id,
         vehicle_id=payload.vehicle_id,
         license_plate=payload.license_plate,

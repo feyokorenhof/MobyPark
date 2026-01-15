@@ -19,7 +19,6 @@ async def retrieve_parking_session(
     if session is None:
         raise ParkingSessionNotFound()
 
-    print(session)
     return session
 
 

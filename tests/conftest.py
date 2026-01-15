@@ -108,7 +108,7 @@ async def user_in_db(async_session: AsyncSession) -> User:
 
 
 @pytest.fixture
-async def test_admin(async_session: AsyncSession) -> User:
+async def admin_in_db(async_session: AsyncSession) -> User:
     email = "admin@test.com"
     result = await async_session.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
@@ -122,7 +122,7 @@ async def test_admin(async_session: AsyncSession) -> User:
         name="Test user",
         email=email,
         phone="683713498",
-        role="user",
+        role="admin",
         active=True,
         birth_year=2001,
     )
@@ -151,8 +151,30 @@ def token_for_user(user_in_db: User) -> str:
 
 
 @pytest.fixture
-def auth_headers(token_for_user: str) -> dict[str, str]:
+def token_for_admin(admin_in_db: User) -> str:
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": str(admin_in_db.id),
+        "iat": int(now.timestamp()),
+        "exp": int((now + timedelta(minutes=30)).timestamp()),
+    }
+
+    token = jwt.encode(
+        payload,
+        JWT_SECRET,
+        algorithm=JWT_ALG,
+    )
+    return token
+
+
+@pytest.fixture
+def auth_headers_user(token_for_user: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token_for_user}"}
+
+
+@pytest.fixture
+def auth_headers_admin(token_for_admin: str) -> dict[str, str]:
+    return {"Authorization": f"Bearer {token_for_admin}"}
 
 
 @pytest.fixture

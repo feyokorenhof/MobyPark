@@ -1,11 +1,10 @@
-"""test
+"""added session field to payment
 
-Revision ID: 2f412f3f7501
-Revises: b96a30896c37
-Create Date: 2025-12-15 22:37:43.412179
+Revision ID: e30bc68de219
+Revises: 5fc1ead6389f
+Create Date: 2026-01-12 23:03:53.440480
 
 """
-
 from typing import Sequence, Union
 
 from alembic import op
@@ -13,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "2f412f3f7501"
-down_revision: Union[str, None] = "b96a30896c37"
+revision: str = 'e30bc68de219'
+down_revision: Union[str, None] = '5fc1ead6389f'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

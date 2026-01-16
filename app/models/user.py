@@ -2,12 +2,12 @@ from typing import TYPE_CHECKING
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Boolean
 from app.db.base import Base, TimestampMixin
-from app.models.vehicle import Vehicle
-from app.models.payment import Payment
 
 # --- help linters : circular-safe imports ---
 if TYPE_CHECKING:
     from app.models.reservation import Reservation
+    from app.models.vehicle import Vehicle
+    from app.models.payment import Payment
 
 
 class User(Base, TimestampMixin):

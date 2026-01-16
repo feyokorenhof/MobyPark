@@ -1,11 +1,10 @@
-"""test
+"""made license_plate field on reservation required
 
-Revision ID: 2f412f3f7501
-Revises: b96a30896c37
-Create Date: 2025-12-15 22:37:43.412179
+Revision ID: eaff6e664ca0
+Revises: 1397379e1715
+Create Date: 2026-01-14 16:11:18.304610
 
 """
-
 from typing import Sequence, Union
 
 from alembic import op
@@ -13,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "2f412f3f7501"
-down_revision: Union[str, None] = "b96a30896c37"
+revision: str = 'eaff6e664ca0'
+down_revision: Union[str, None] = '1397379e1715'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

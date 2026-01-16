@@ -13,6 +13,7 @@ async def retrieve_parking_lot(db: AsyncSession, parking_lot_id: int):
 
     if parking_lot is None:
         raise ParkingLotNotFound()
+    return parking_lot
 
 
 async def create_parking_lot(db: AsyncSession, payload: ParkingLotIn):

@@ -3,10 +3,10 @@ from sqlalchemy import String, Integer, ForeignKey, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from app.db.base import Base
-from app.models.reservation import Reservation
 
 if TYPE_CHECKING:
     from app.models.user import User
+    from app.models.reservation import Reservation
 
 
 class Vehicle(Base):

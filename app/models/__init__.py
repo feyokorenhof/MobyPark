@@ -5,3 +5,5 @@ from .vehicle import Vehicle  # noqa
 from .payment import Payment  # noqa
 from .discount_code import DiscountCode  # noqa
 from .discount_redemption import DiscountRedemption  # noqa
+from .gate import Gate  # noqa
+from .parking_session import ParkingSession  # noqa

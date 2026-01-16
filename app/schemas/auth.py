@@ -7,7 +7,6 @@ class RegisterIn(BaseModel):
     name: constr(min_length=3, max_length=100)  # pyright: ignore[reportInvalidTypeForm]
     username: constr(min_length=3)  # pyright: ignore[reportInvalidTypeForm]
     phone: constr(min_length=9)  # pyright: ignore[reportInvalidTypeForm]
-    role: constr()  # pyright: ignore[reportInvalidTypeForm]
     active: bool
     birth_year: int
 

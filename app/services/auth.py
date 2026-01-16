@@ -90,7 +90,7 @@ def require_roles(*allowed_roles: str) -> Callable:
     return _dep
 
 
-async def create_account(db: AsyncSession, payload: RegisterIn):
+async def create_user(db: AsyncSession, payload: RegisterIn):
     existing = await db.execute(select(User).where(User.email == payload.email))
     if existing.scalar_one_or_none():
         raise AccountAlreadyExists()
@@ -99,8 +99,8 @@ async def create_account(db: AsyncSession, payload: RegisterIn):
         email=payload.email,
         name=payload.name,
         username=payload.username,
+        role="user",
         phone=payload.phone,
-        role=payload.role,
         active=payload.active,
         birth_year=payload.birth_year,
         password_hash=hash_password(payload.password),
@@ -111,6 +111,29 @@ async def create_account(db: AsyncSession, payload: RegisterIn):
     await db.commit()
     await db.refresh(user)
     return user
+
+
+async def create_admin(db: AsyncSession, payload: RegisterIn):
+    existing = await db.execute(select(User).where(User.email == payload.email))
+    if existing.scalar_one_or_none():
+        raise AccountAlreadyExists()
+
+    admin = User(
+        email=payload.email,
+        name=payload.name,
+        username=payload.username,
+        role="admin",
+        phone=payload.phone,
+        active=payload.active,
+        birth_year=payload.birth_year,
+        password_hash=hash_password(payload.password),
+    )
+
+    db.add(admin)
+    await db.flush()
+    await db.commit()
+    await db.refresh(admin)
+    return admin
 
 
 async def login_account(db: AsyncSession, payload: LoginIn):

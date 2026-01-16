@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from app.models.user import User
     from app.models.vehicle import Vehicle
     from app.models.parking_lot import ParkingLot
+    from app.models.discount_code import DiscountCode
     from app.models.parking_session import ParkingSession
     from app.models.payment import Payment
 
@@ -114,6 +115,15 @@ class Reservation(Base, TimestampMixin):
         ),
     )
 
+    discount_code_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("discount_codes.id", ondelete="SET NULL"),
+        index=True,
+        nullable=True,
+    )
+
+    original_cost: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    discount_amount: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+
     # --- Relationships ---
     user: Mapped[Optional["User"]] = relationship(
         back_populates="reservations", passive_deletes=True
@@ -129,6 +139,9 @@ class Reservation(Base, TimestampMixin):
     # but for drive-up it often belongs to session.
     payment: Mapped[Optional["Payment"]] = relationship(
         back_populates="reservation", uselist=False
+    )
+    discount_code: Mapped[Optional["DiscountCode"]] = relationship(
+        "DiscountCode", passive_deletes=True
     )
 
     # Sessions created from this reservation (often 0..1, but allow 1..n to be safe)

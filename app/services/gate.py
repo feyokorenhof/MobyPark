@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.schemas.gate import GateDecision, GateEventIn, GateEventOut
+from app.models.gate import Gate
+from app.schemas.gate import GateDecision, GateEventIn, GateEventOut, GateIn
 
 from app.services.parking_sessions import (
     close_session,
@@ -76,3 +77,12 @@ async def handle_gate_event(db: AsyncSession, payload: GateEventIn):
     return GateEventOut(
         gate_id=payload.gate_id, decision=GateDecision.deny, reason="invalid_direction"
     )
+
+
+async def create_gate(db: AsyncSession, payload: GateIn) -> Gate:
+    new_gate = Gate(parking_lot_id=payload.parking_lot_id)
+    db.add(new_gate)
+    await db.flush()  # get PK
+    await db.commit()
+    await db.refresh(new_gate)
+    return new_gate

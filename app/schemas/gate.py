@@ -29,3 +29,12 @@ class GateEventOut(BaseModel):
 
     session_id: Optional[int] = None
     reservation_id: Optional[int] = None
+
+
+class GateIn(BaseModel):
+    parking_lot_id: int
+
+
+class GateOut(BaseModel):
+    id: int
+    parking_lot_id: int

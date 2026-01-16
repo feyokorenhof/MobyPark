@@ -2,7 +2,7 @@ from httpx import AsyncClient
 import pytest
 
 from app.models.parking_lot import ParkingLot
-from app.schemas.parking_lot import ParkingLotOut
+from app.schemas.parking_lot import ParkingLotIn, ParkingLotOut
 
 
 @pytest.mark.anyio
@@ -23,19 +23,20 @@ async def test_create_lot_authorized(
     async_client: AsyncClient, auth_headers_admin: dict[str, str]
 ):
     name = "TestLot"
+    payload = ParkingLotIn(
+        name=name,
+        location="Rotterdam",
+        address="Wijnhaven 103",
+        capacity=20,
+        reserved=0,
+        tariff=5.0,
+        daytariff=30.0,
+        latitude=51.926517,
+        longitude=4.462456,
+    )
     resp = await async_client.post(
         "/parking_lots",
-        json={
-            "name": name,
-            "location": "Rotterdam",
-            "address": "Wijnhaven 103",
-            "capacity": 20,
-            "reserved": 0,
-            "tariff": 5.0,
-            "daytariff": 30.0,
-            "latitude": 51.926517,
-            "longitude": 4.462456,
-        },
+        json=payload.model_dump(mode="json"),
         headers=auth_headers_admin,
     )
 
@@ -50,19 +51,20 @@ async def test_create_lot_unauthorized(
     async_client: AsyncClient, auth_headers_user: dict[str, str]
 ):
     name = "TestLot"
+    payload = ParkingLotIn(
+        name=name,
+        location="Rotterdam",
+        address="Wijnhaven 103",
+        capacity=20,
+        reserved=0,
+        tariff=5.0,
+        daytariff=30.0,
+        latitude=51.926517,
+        longitude=4.462456,
+    )
     resp = await async_client.post(
         "/parking_lots",
-        json={
-            "name": name,
-            "location": "Rotterdam",
-            "address": "Wijnhaven 103",
-            "capacity": 20,
-            "reserved": 0,
-            "tariff": 5.0,
-            "daytariff": 30.0,
-            "latitude": 51.926517,
-            "longitude": 4.462456,
-        },
+        json=payload.model_dump(mode="json"),
         headers=auth_headers_user,
     )
 

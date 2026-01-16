@@ -1,7 +1,8 @@
 from httpx import AsyncClient
 import pytest
 
-from app.schemas.auth import LoginOut, RegisterOut
+from app.models.user import User
+from app.schemas.auth import LoginOut, RegisterOut, UserOut
 
 EMAIL = "test@test.com"
 USERNAME = "test"
@@ -87,6 +88,28 @@ async def test_login_invalid(async_client: AsyncClient):
     )
     # Expect 401 (Unauthorized) because user doesn't exist
     assert resp.status_code == 401
+
+
+@pytest.mark.anyio
+async def test_get_user_authorized(
+    async_client: AsyncClient, user_in_db: User, auth_headers_admin: dict[str, str]
+):
+    resp = await async_client.get(
+        f"/auth/users/{user_in_db.id}", headers=auth_headers_admin
+    )
+    assert resp.status_code == 200
+    data = UserOut.model_validate(resp.json())
+    assert data.id == user_in_db.id
+
+
+@pytest.mark.anyio
+async def test_get_user_unauthorized(
+    async_client: AsyncClient, user_in_db: User, auth_headers_user: dict[str, str]
+):
+    resp = await async_client.get(
+        f"/auth/users/{user_in_db.id}", headers=auth_headers_user
+    )
+    assert resp.status_code == 403
 
 
 @pytest.mark.anyio

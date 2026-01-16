@@ -1,9 +1,10 @@
+from datetime import datetime, timedelta
 from httpx import AsyncClient
 import pytest
 
 from app.models.parking_lot import ParkingLot
-from app.models.reservation import ReservationStatus
 from app.models.vehicle import Vehicle
+from app.schemas.reservations import ReservationIn
 
 
 @pytest.mark.anyio
@@ -13,17 +14,17 @@ async def test_create_reservation(
     vehicle_in_db: Vehicle,
     auth_headers_user: dict[str, str],
 ):
+    payload = ReservationIn(
+        planned_start=datetime.now(),
+        planned_end=datetime.now() + timedelta(hours=1),
+        parking_lot_id=lot_in_db.id,
+        vehicle_id=vehicle_in_db.id,
+        license_plate=vehicle_in_db.license_plate,
+    )
+
     resp = await async_client.post(
         "/reservations",
-        json={
-            "planned_start": "2025-11-17 11:27:42.402",
-            "planned_end": "2025-11-17 12:27:42.402",
-            "parking_lot_id": lot_in_db.id,
-            "vehicle_id": vehicle_in_db.id,
-            "license_plate": vehicle_in_db.license_plate,
-            "status": ReservationStatus.pending,
-            "quoted_cost": 20.0,
-        },
+        json=payload.model_dump(mode="json"),
         headers=auth_headers_user,
     )
 
@@ -38,16 +39,16 @@ async def test_create_reservation_overlap(
     vehicle_in_db: Vehicle,
     auth_headers_user: dict[str, str],
 ):
+    payload = ReservationIn(
+        planned_start=datetime.now(),
+        planned_end=datetime.now() + timedelta(hours=1),
+        parking_lot_id=lot_in_db.id,
+        vehicle_id=vehicle_in_db.id,
+        license_plate=vehicle_in_db.license_plate,
+    )
     resp1 = await async_client.post(
         "/reservations",
-        json={
-            "planned_start": "2025-11-17 11:27:42.402",
-            "planned_end": "2025-11-17 12:27:42.402",
-            "parking_lot_id": lot_in_db.id,
-            "vehicle_id": vehicle_in_db.id,
-            "license_plate": vehicle_in_db.license_plate,
-            "status": ReservationStatus.pending,
-        },
+        json=payload.model_dump(mode="json"),
         headers=auth_headers_user,
     )
     # Expect 201 (Created)
@@ -55,14 +56,7 @@ async def test_create_reservation_overlap(
 
     resp2 = await async_client.post(
         "/reservations",
-        json={
-            "planned_start": "2025-11-17 11:27:42.402",
-            "planned_end": "2025-11-17 12:27:42.402",
-            "parking_lot_id": lot_in_db.id,
-            "vehicle_id": vehicle_in_db.id,
-            "license_plate": vehicle_in_db.license_plate,
-            "status": ReservationStatus.pending,
-        },
+        json=payload.model_dump(mode="json"),
         headers=auth_headers_user,
     )
     # Expect 409 (Conflict) because of overlapping times
@@ -73,16 +67,16 @@ async def test_create_reservation_overlap(
 async def test_create_reservation_unauthorized(
     async_client: AsyncClient,
 ):
+    payload = ReservationIn(
+        planned_start=datetime.now(),
+        planned_end=datetime.now() + timedelta(hours=1),
+        parking_lot_id=-1,
+        vehicle_id=-1,
+        license_plate="fake_plate",
+    )
     resp = await async_client.post(
         "/reservations",
-        json={
-            "planned_start": "2025-11-17 11:27:42.402",
-            "planned_end": "2025-11-17 12:27:42.402",
-            "parking_lot_id": "fake_id",
-            "vehicle_id": "fake_id",
-            "license_plate": "fake_id",
-            "status": ReservationStatus.pending,
-        },
+        json=payload.model_dump(mode="json"),
     )
     # Expect 401 (Unauthorized)
     assert resp.status_code == 401

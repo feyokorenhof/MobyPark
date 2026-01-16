@@ -23,8 +23,18 @@ class GateDecision(str, Enum):
 
 
 class GateEventOut(BaseModel):
+    gate_id: int
     decision: GateDecision
     reason: Optional[str] = None
 
     session_id: Optional[int] = None
     reservation_id: Optional[int] = None
+
+
+class GateIn(BaseModel):
+    parking_lot_id: int
+
+
+class GateOut(BaseModel):
+    id: int
+    parking_lot_id: int

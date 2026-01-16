@@ -13,11 +13,11 @@ from sqlalchemy import (
 )
 from datetime import datetime
 from app.db.base import Base, TimestampMixin
-from app.models.payment import Payment
 
 if TYPE_CHECKING:
     from app.models.parking_lot import ParkingLot
     from app.models.reservation import Reservation
+    from app.models.payment import Payment
 
 
 class SessionStatus(str, enum.Enum):

@@ -11,9 +11,9 @@ class ReservationStatus(str, Enum):
 
 
 class ReservationIn(BaseModel):
-    user_id: int
     parking_lot_id: int
     vehicle_id: int
+    license_plate: str
     planned_start: datetime
     planned_end: datetime
 
@@ -24,6 +24,7 @@ class ReservationOut(BaseModel):
     user_id: int
     parking_lot_id: int
     vehicle_id: int
+    license_plate: str
     planned_start: datetime
     planned_end: datetime
     status: ReservationStatus

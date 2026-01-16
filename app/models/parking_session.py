@@ -67,7 +67,6 @@ class ParkingSession(Base, TimestampMixin):
     )
 
     # Billing truth
-    # TODO: willen we het zo gaan doen?
     amount_due: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     amount_paid: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     closed_at: Mapped[Optional[datetime]] = mapped_column(
@@ -88,7 +87,9 @@ class ParkingSession(Base, TimestampMixin):
     )
     parking_lot: Mapped["ParkingLot"] = relationship(back_populates="sessions")
 
-    # TODO: alleen per sessie betalen?
-    payment: Mapped[Optional["Payment"]] = relationship(
-        back_populates="session", uselist=False
+    payment: Mapped["Payment"] = relationship(
+        back_populates="session",
+        uselist=False,
+        cascade="all, delete-orphan",
+        single_parent=True,
     )

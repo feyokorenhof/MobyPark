@@ -3,6 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.parking_session import ParkingSession, SessionStatus
+from app.models.payment import Payment, PaymentStatus
 from app.models.reservation import Reservation
 from app.schemas.gate import GateEventIn
 from app.services.exceptions import ParkingSessionNotFound
@@ -42,6 +43,7 @@ async def create_session_from_reservation(
         entry_time=payload.timestamp,
         entry_gate_id=payload.gate_id,
     )
+    new_session.payment = Payment(status=PaymentStatus.pending)
     db.add(new_session)
     await db.flush()  # get PK
     await db.commit()
@@ -58,6 +60,7 @@ async def create_session_anonymously(
         entry_time=payload.timestamp,
         entry_gate_id=payload.gate_id,
     )
+    new_session.payment = Payment(status=PaymentStatus.pending)
     db.add(new_session)
     await db.flush()  # get PK
     await db.commit()

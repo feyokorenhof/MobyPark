@@ -46,7 +46,7 @@ async def handle_gate_event(db: AsyncSession, payload: GateEventIn):
                 reservation_id=valid_reservation.id,
             )
 
-        # No reservation -> treat as anonymous drive-up if allowed
+        # No reservation -> treat as anonymous drive-up
         session = await create_session_anonymously(db, payload)
         return GateEventOut(
             gate_id=payload.gate_id,
@@ -56,10 +56,9 @@ async def handle_gate_event(db: AsyncSession, payload: GateEventIn):
         )
 
     if payload.direction == "exit":
-        # To exit you typically must have an active session
+        # To exit you must have an active session
+        # But we don't want to trap people
         if not active_session:
-            # TODO: ask PO if we let people out if they didn't have session
-            # just log the anomaly
             return GateEventOut(
                 gate_id=payload.gate_id,
                 decision=GateDecision.open,

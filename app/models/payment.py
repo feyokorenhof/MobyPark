@@ -1,6 +1,6 @@
 import enum
 from typing import TYPE_CHECKING, Optional
-from sqlalchemy import Enum, Float, DateTime, ForeignKey, func
+from sqlalchemy import Enum, Float, DateTime, ForeignKey, func, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from app.db.base import Base
@@ -35,7 +35,7 @@ class Payment(Base):
         index=True,
     )
 
-    amount: Mapped[float] = mapped_column(Float, nullable=False)
+    amount: Mapped[float] = mapped_column(Float, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),  # let DB set it
@@ -49,7 +49,7 @@ class Payment(Base):
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="payments")
+    user: Mapped[Optional["User"]] = relationship(back_populates="payments")
     reservation: Mapped[Optional["Reservation"]] = relationship(
         back_populates="payment"
     )

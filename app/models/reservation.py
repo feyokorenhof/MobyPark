@@ -142,6 +142,7 @@ class Reservation(Base, TimestampMixin):
     )
     discount_code: Mapped[Optional["DiscountCode"]] = relationship(
         "DiscountCode", passive_deletes=True
+    )
 
     # Sessions created from this reservation (often 0..1, but allow 1..n to be safe)
     sessions: Mapped[list["ParkingSession"]] = relationship(

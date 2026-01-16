@@ -6,6 +6,7 @@ from sqlalchemy import select, func
 
 from app.db.session import get_session
 from app.models.discount_code import DiscountCode
+from app.models.user import User
 from app.schemas.discounts import (
     DiscountCreate,
     DiscountUpdate,
@@ -14,8 +15,8 @@ from app.schemas.discounts import (
 )
 
 
-from app.services.authz import require_admin
 from app.schemas.discounts import DiscountValidateOut
+from app.services.auth import get_current_user, require_roles
 from app.services.discounts import get_discount_by_code, validate_discount_code
 
 
@@ -27,8 +28,11 @@ def _gen_code(prefix: str = "", length: int = 8) -> str:
     return prefix + "".join(secrets.choice(alphabet) for _ in range(length))
 
 
-@router.get("", response_model=list[DiscountOut], dependencies=[Depends(require_admin)])
-async def list_discounts(db: AsyncSession = Depends(get_session)):
+@router.get("", response_model=list[DiscountOut])
+async def list_discounts(
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(require_roles("admin")),
+):
     res = await db.execute(select(DiscountCode).order_by(DiscountCode.id.desc()))
     return res.scalars().all()
 
@@ -37,10 +41,11 @@ async def list_discounts(db: AsyncSession = Depends(get_session)):
     "",
     response_model=DiscountOut,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_admin)],
 )
 async def create_discount(
-    payload: DiscountCreate, db: AsyncSession = Depends(get_session)
+    payload: DiscountCreate,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(require_roles("admin", "hotel_manager")),
 ):
     # case-insensitive uniqueness check
     existing = await db.execute(
@@ -58,11 +63,12 @@ async def create_discount(
     return dc
 
 
-@router.patch(
-    "/{discount_id}", response_model=DiscountOut, dependencies=[Depends(require_admin)]
-)
+@router.patch("/{discount_id}", response_model=DiscountOut)
 async def update_discount(
-    discount_id: int, payload: DiscountUpdate, db: AsyncSession = Depends(get_session)
+    discount_id: int,
+    payload: DiscountUpdate,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(require_roles("admin", "hotel_manager")),
 ):
     res = await db.execute(select(DiscountCode).where(DiscountCode.id == discount_id))
     dc = res.scalar_one_or_none()
@@ -78,11 +84,11 @@ async def update_discount(
     return dc
 
 
-@router.post(
-    "/generate", response_model=list[DiscountOut], dependencies=[Depends(require_admin)]
-)
+@router.post("/generate", response_model=list[DiscountOut])
 async def generate_discounts(
-    payload: DiscountGenerateIn, db: AsyncSession = Depends(get_session)
+    payload: DiscountGenerateIn,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(require_roles("admin", "hotel_manager")),
 ):
     created: list[DiscountCode] = []
 
@@ -123,6 +129,7 @@ async def generate_discounts(
 async def validate_discount_code_public(
     code: str,
     db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
 ):
     try:
         dc = await get_discount_by_code(db, code)

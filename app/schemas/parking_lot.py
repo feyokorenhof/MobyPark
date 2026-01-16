@@ -27,3 +27,8 @@ class ParkingLotOut(BaseModel):
     latitude: float
     longitude: float
     created_at: datetime
+
+
+class ParkingLotCostIn(BaseModel):
+    id: int
+    hours: int

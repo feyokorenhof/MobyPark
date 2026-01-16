@@ -2,7 +2,7 @@ from httpx import AsyncClient
 import pytest
 
 from app.models.user import User
-from app.schemas.auth import LoginOut, RegisterOut, UserOut
+from app.schemas.auth import LoginOut, RegisterIn, RegisterOut, UserOut
 
 EMAIL = "test@test.com"
 USERNAME = "test"
@@ -13,17 +13,18 @@ TOKEN_TYPE = "bearer"
 
 @pytest.mark.anyio
 async def test_register_valid(async_client: AsyncClient):
+    payload = RegisterIn(
+        email=EMAIL,
+        password=PASSWORD,
+        name=NAME,
+        username=NAME,
+        phone="0612345678",
+        active=True,
+        birth_year=1990,
+    )
     resp = await async_client.post(
         "/auth/register",
-        json={
-            "email": EMAIL,
-            "password": PASSWORD,
-            "name": NAME,
-            "username": "testuser",
-            "phone": "0612345678",
-            "active": True,
-            "birth_year": 1990,
-        },
+        json=payload.model_dump(mode="json"),
     )
     assert resp.status_code == 201
     data = RegisterOut.model_validate(resp.json())
@@ -34,17 +35,17 @@ async def test_register_valid(async_client: AsyncClient):
 
 @pytest.mark.anyio
 async def test_register_existing(async_client: AsyncClient):
+    payload = RegisterIn(
+        email=EMAIL,
+        password=PASSWORD,
+        name=NAME,
+        username=NAME,
+        phone="0612345678",
+        active=True,
+        birth_year=1990,
+    )
     resp = await async_client.post(
-        "/auth/register",
-        json={
-            "email": EMAIL,
-            "password": PASSWORD,
-            "name": NAME,
-            "username": "testuser",
-            "phone": "0612345678",
-            "active": True,
-            "birth_year": 1990,
-        },
+        "/auth/register", json=payload.model_dump(mode="json")
     )
     # Expect 409 (conflict) because user already exists
     assert resp.status_code == 409
@@ -58,7 +59,7 @@ async def test_register_bad_email(async_client: AsyncClient):
             "email": "hi",
             "password": PASSWORD,
             "name": NAME,
-            "username": "testuser",
+            "username": NAME,
             "phone": "0612345678",
             "active": True,
             "birth_year": 1990,
@@ -116,17 +117,18 @@ async def test_get_user_unauthorized(
 async def test_register_admin_authorized(async_client: AsyncClient, auth_headers_admin):
     email = "admin2@test.com"
     name = "admin2"
+    payload = RegisterIn(
+        email=email,
+        password=PASSWORD,
+        name=name,
+        username=name,
+        phone="0612345678",
+        active=True,
+        birth_year=1990,
+    )
     resp = await async_client.post(
         "/auth/register_admin",
-        json={
-            "email": email,
-            "password": PASSWORD,
-            "name": name,
-            "username": name,
-            "phone": "0612345678",
-            "active": True,
-            "birth_year": 1990,
-        },
+        json=payload.model_dump(mode="json"),
         headers=auth_headers_admin,
     )
     assert resp.status_code == 201
@@ -142,17 +144,18 @@ async def test_register_admin_unauthorized(
 ):
     email = "admin3@test.com"
     name = "admin3"
+    payload = RegisterIn(
+        email=email,
+        password=PASSWORD,
+        name=name,
+        username=name,
+        phone="0612345678",
+        active=True,
+        birth_year=1990,
+    )
     resp = await async_client.post(
         "/auth/register_admin",
-        json={
-            "email": email,
-            "password": PASSWORD,
-            "name": name,
-            "username": name,
-            "phone": "0612345678",
-            "active": True,
-            "birth_year": 1990,
-        },
+        json=payload.model_dump(mode="json"),
         headers=auth_headers_user,
     )
     assert resp.status_code == 403

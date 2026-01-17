@@ -8,7 +8,6 @@ Pure unit tests for the discount service.
 from __future__ import annotations
 
 import pytest
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from unittest.mock import AsyncMock
 
@@ -102,4 +101,5 @@ async def test_apply_discount_valid_code(monkeypatch):
     assert discount_amount == 20.0
     assert final_cost == 80.0
     assert code_id == 1
+    assert dc is not None
     assert dc.code == "WELCOME20"

@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.gate import Gate
+from app.models.payment import PaymentStatus
 from app.schemas.gate import GateDecision, GateEventIn, GateEventOut, GateIn
 
 from app.services.parking_sessions import (
@@ -59,10 +60,20 @@ async def handle_gate_event(db: AsyncSession, payload: GateEventIn):
         # To exit you must have an active session
         # But we don't want to trap people
         if not active_session:
+            print("No active session found")
             return GateEventOut(
                 gate_id=payload.gate_id,
                 decision=GateDecision.open,
                 reason="no_active_session",
+            )
+
+        print("Active session found")
+        # Check if session is actually paid
+        if active_session.payment.status != PaymentStatus.paid:
+            return GateEventOut(
+                gate_id=payload.gate_id,
+                decision=GateDecision.deny,
+                reason="session_not_paid",
             )
 
         await close_session(db, active_session, payload)

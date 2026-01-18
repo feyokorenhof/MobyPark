@@ -1,11 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
+from app.models.parking_session import ParkingSession, SessionStatus
 from app.models.payment import Payment, PaymentStatus
 from app.models.user import User
 from app.schemas.payment import PaymentIn
 from app.services.exceptions import (
-    InvalidCredentials,
     PaymentNotFound,
 )
 
@@ -13,12 +14,35 @@ from app.services.exceptions import (
 async def retrieve_payment(
     db: AsyncSession, payment_id: int, current_user: User
 ) -> Payment:
-    existing = await db.execute(select(Payment).where(Payment.id == payment_id))
+    existing = await db.execute(
+        select(Payment)
+        .where(Payment.id == payment_id)
+        .options(selectinload(ParkingSession.payment))
+    )
     payment = existing.scalar_one_or_none()
     if payment is None:
         raise PaymentNotFound()
 
     return payment
+
+
+async def retrieve_payment_by_plate_and_parking_lot_id(
+    db: AsyncSession, payment: PaymentIn, current_user: User
+) -> Payment:
+    existing = await db.execute(
+        select(Payment)
+        .join(Payment.session)
+        .where(ParkingSession.parking_lot_id == payment.parking_lot_id)
+        .where(ParkingSession.license_plate == payment.license_plate)
+        .where(ParkingSession.status == SessionStatus.active)
+        .options(selectinload(Payment.session))
+    )
+
+    existing_payment = existing.scalar_one_or_none()
+    if existing_payment is None:
+        raise PaymentNotFound()
+
+    return existing_payment
 
 
 async def create_payment(
@@ -34,14 +58,18 @@ async def create_payment(
     return new_payment
 
 
-async def mark_payment_paid(db: AsyncSession, payment_id: int, user: User) -> Payment:
-    payment = await retrieve_payment(db, payment_id, user)
+async def mark_payment_paid(
+    db: AsyncSession, payment: PaymentIn, user: User
+) -> Payment:
+    active_payment = await retrieve_payment_by_plate_and_parking_lot_id(
+        db, payment, user
+    )
 
-    if payment.status == PaymentStatus.paid:
-        return payment
+    if active_payment.status == PaymentStatus.paid:
+        return active_payment
 
-    payment.status = PaymentStatus.paid
+    active_payment.status = PaymentStatus.paid
 
     await db.commit()
-    await db.refresh(payment)
-    return payment
+    await db.refresh(active_payment)
+    return active_payment

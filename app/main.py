@@ -1,7 +1,15 @@
 from fastapi import FastAPI
 from starlette.responses import JSONResponse
 from app.core.config import settings
-from app.routers import auth, parking_lots, parking_sessions, reservations, gate, discounts
+from app.routers import (
+    auth,
+    parking_lots,
+    parking_sessions,
+    payments,
+    reservations,
+    gate,
+    discounts,
+)
 from app.services.exceptions import (
     AccountAlreadyExists,
     InvalidCredentials,
@@ -29,6 +37,7 @@ app.include_router(gate.router, prefix="/gate", tags=["gate"])
 app.include_router(
     parking_sessions.router, prefix="/parking_sessions", tags=["parking_sessions"]
 )
+app.include_router(payments.router, prefix="/payments", tags=["payments"])
 
 
 # Handle our exceptions

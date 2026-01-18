@@ -30,5 +30,5 @@ async def pay_payment(
     db: AsyncSession = Depends(get_session),
     current_user: User = Depends(require_roles("parking_meter")),
 ):
-    payment = await mark_payment_paid(db, payload.id, current_user)
+    payment = await mark_payment_paid(db, payload, current_user)
     return PaymentOut.model_validate(payment)

@@ -5,12 +5,12 @@ from pydantic import BaseModel, ConfigDict
 # Mirror SQLA Enum so input can be validated
 class PaymentStatus(str, Enum):
     pending = "pending"
-    confirmed = "confirmed"
-    cancelled = "cancelled"
+    paid = "paid"
 
 
 class PaymentIn(BaseModel):
-    id: int
+    parking_lot_id: int
+    license_plate: str
 
 
 class PaymentOut(BaseModel):

@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.models.payment import Payment
+from app.models.payment import Payment, PaymentStatus
 from app.models.user import User
 from app.schemas.payment import PaymentIn
 from app.services.exceptions import (
@@ -18,8 +18,6 @@ async def retrieve_payment(
     if payment is None:
         raise PaymentNotFound()
 
-    if payment.user_id != current_user.id:
-        raise InvalidCredentials()
     return payment
 
 
@@ -34,3 +32,16 @@ async def create_payment(
     await db.commit()
     await db.refresh(new_payment)
     return new_payment
+
+
+async def mark_payment_paid(db: AsyncSession, payment_id: int, user: User) -> Payment:
+    payment = await retrieve_payment(db, payment_id, user)
+
+    if payment.status == PaymentStatus.paid:
+        return payment
+
+    payment.status = PaymentStatus.paid
+
+    await db.commit()
+    await db.refresh(payment)
+    return payment

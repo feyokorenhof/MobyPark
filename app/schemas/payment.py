@@ -10,7 +10,7 @@ class PaymentStatus(str, Enum):
 
 
 class PaymentIn(BaseModel):
-    pass
+    id: int
 
 
 class PaymentOut(BaseModel):

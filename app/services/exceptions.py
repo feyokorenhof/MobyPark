@@ -55,3 +55,12 @@ class ParkingSessionError(Exception):
 
 class ParkingSessionNotFound(ParkingSessionError):
     pass
+
+
+# Payments
+class PaymentError(Exception):
+    pass
+
+
+class PaymentNotFound(PaymentError):
+    pass

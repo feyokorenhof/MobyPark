@@ -33,7 +33,7 @@ async def test_create_anonymous_parking_session(
         headers=auth_headers_admin,
     )
 
-    assert resp_gate.status_code == 201
+    assert resp_gate.status_code == 200
     data_gate = GateEventOut.model_validate(resp_gate.json())
     assert data_gate.gate_id == gate.id
     assert data_gate.decision == GateDecision.open
@@ -71,7 +71,7 @@ async def test_create_parking_session(
         headers=auth_headers_admin,
     )
 
-    assert resp_gate.status_code == 201
+    assert resp_gate.status_code == 200
     data_gate = GateEventOut.model_validate(resp_gate.json())
     assert data_gate.gate_id == gate.id
     assert data_gate.decision == GateDecision.open

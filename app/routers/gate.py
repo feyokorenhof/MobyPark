@@ -10,9 +10,7 @@ from app.services.gate import create_gate, handle_gate_event
 router = APIRouter()
 
 
-@router.post(
-    "/{gate_id}", response_model=GateEventOut, status_code=status.HTTP_201_CREATED
-)
+@router.post("/{gate_id}", response_model=GateEventOut, status_code=status.HTTP_200_OK)
 async def on_gate_event(
     gate_id: int, payload: GateEventIn, db: AsyncSession = Depends(get_session)
 ):

@@ -15,7 +15,7 @@ from app.db import session as db_session
 from app.models.gate import Gate
 from app.models.parking_lot import ParkingLot
 from app.models.reservation import Reservation
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.vehicle import Vehicle
 from app.services.auth import JWT_ALG, JWT_SECRET
 
@@ -97,7 +97,7 @@ async def user_in_db(async_session: AsyncSession) -> User:
         name="Test user",
         email=email,
         phone="683713498",
-        role="user",
+        role=UserRole.user,
         active=True,
         birth_year=2001,
     )
@@ -122,7 +122,33 @@ async def admin_in_db(async_session: AsyncSession) -> User:
         name="Test user",
         email=email,
         phone="683713498",
-        role="admin",
+        role=UserRole.admin,
+        active=True,
+        birth_year=2001,
+    )
+
+    async_session.add(user)
+    await async_session.commit()
+    await async_session.refresh(user)
+    return user
+
+
+@pytest.fixture
+async def parking_meter_in_db(async_session: AsyncSession) -> User:
+    email = "parking@meter.com"
+    result = await async_session.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+
+    if user:
+        return user
+
+    user = User(
+        username="TestParkingMeter",
+        password_hash="test",
+        name="Test Parking Meter",
+        email=email,
+        phone="683713498",
+        role=UserRole.parking_meter,
         active=True,
         birth_year=2001,
     )
@@ -168,6 +194,23 @@ def token_for_admin(admin_in_db: User) -> str:
 
 
 @pytest.fixture
+def token_for_parking_meter(parking_meter_in_db: User) -> str:
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": str(parking_meter_in_db.id),
+        "iat": int(now.timestamp()),
+        "exp": int((now + timedelta(minutes=30)).timestamp()),
+    }
+
+    token = jwt.encode(
+        payload,
+        JWT_SECRET,
+        algorithm=JWT_ALG,
+    )
+    return token
+
+
+@pytest.fixture
 def auth_headers_user(token_for_user: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token_for_user}"}
 
@@ -175,6 +218,11 @@ def auth_headers_user(token_for_user: str) -> dict[str, str]:
 @pytest.fixture
 def auth_headers_admin(token_for_admin: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token_for_admin}"}
+
+
+@pytest.fixture
+def auth_headers_parking_meter(token_for_parking_meter: str) -> dict[str, str]:
+    return {"Authorization": f"Bearer {token_for_parking_meter}"}
 
 
 @pytest.fixture

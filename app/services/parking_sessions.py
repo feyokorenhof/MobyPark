@@ -1,8 +1,10 @@
 from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.models.parking_session import ParkingSession, SessionStatus
+from app.models.payment import Payment, PaymentStatus
 from app.models.reservation import Reservation
 from app.schemas.gate import GateEventIn
 from app.services.exceptions import ParkingSessionNotFound
@@ -12,7 +14,9 @@ async def retrieve_parking_session(
     db: AsyncSession, parking_session_id: int
 ) -> ParkingSession:
     existing = await db.execute(
-        select(ParkingSession).where(ParkingSession.id == parking_session_id)
+        select(ParkingSession)
+        .where(ParkingSession.id == parking_session_id)
+        .options(selectinload(ParkingSession.payment))
     )
     session = existing.scalar_one_or_none()
 
@@ -42,6 +46,7 @@ async def create_session_from_reservation(
         entry_time=payload.timestamp,
         entry_gate_id=payload.gate_id,
     )
+    new_session.payment = Payment(status=PaymentStatus.pending)
     db.add(new_session)
     await db.flush()  # get PK
     await db.commit()
@@ -58,6 +63,7 @@ async def create_session_anonymously(
         entry_time=payload.timestamp,
         entry_gate_id=payload.gate_id,
     )
+    new_session.payment = Payment(status=PaymentStatus.pending)
     db.add(new_session)
     await db.flush()  # get PK
     await db.commit()
@@ -68,10 +74,14 @@ async def create_session_anonymously(
 async def try_get_active_session_by_plate(
     db: AsyncSession, lot_id: int, plate: str
 ) -> Optional[ParkingSession]:
-    q = select(ParkingSession).where(
-        ParkingSession.parking_lot_id == lot_id,
-        ParkingSession.license_plate == plate,
-        ParkingSession.status == SessionStatus.active,
+    q = (
+        select(ParkingSession)
+        .where(
+            ParkingSession.parking_lot_id == lot_id,
+            ParkingSession.license_plate == plate,
+            ParkingSession.status == SessionStatus.active,
+        )
+        .options(selectinload(ParkingSession.payment))
     )
     res = await db.execute(q)
     return res.scalar_one_or_none()

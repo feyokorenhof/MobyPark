@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -69,7 +70,9 @@ async def mark_payment_paid(
         return active_payment
 
     active_payment.status = PaymentStatus.paid
+    active_payment.completed_at = datetime.now()
     active_payment.session.amount_paid = active_payment.session.amount_due
+    active_payment.session.amount_due = 0.0
 
     await db.commit()
     await db.refresh(active_payment)

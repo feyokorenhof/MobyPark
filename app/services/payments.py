@@ -69,6 +69,7 @@ async def mark_payment_paid(
         return active_payment
 
     active_payment.status = PaymentStatus.paid
+    active_payment.session.amount_paid = active_payment.session.amount_due
 
     await db.commit()
     await db.refresh(active_payment)

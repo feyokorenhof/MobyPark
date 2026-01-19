@@ -25,8 +25,10 @@ class ParkingLotError(Exception):
 class ParkingLotNotFound(ParkingLotError):
     pass
 
+
 class ParkingLotAtCapacity(Exception):
     """Raised when parking lot is at full capacity."""
+
     pass
 
 
@@ -67,4 +69,8 @@ class PaymentError(Exception):
 
 
 class PaymentNotFound(PaymentError):
+    pass
+
+
+class PaymentNoEntryOrExitTime(PaymentError):
     pass

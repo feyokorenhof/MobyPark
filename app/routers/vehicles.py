@@ -68,3 +68,4 @@ async def delete_vehicle_by_id(
 ):
     """Delete a vehicle."""
     await delete_vehicle(db, vehicle_id, current_user)
+

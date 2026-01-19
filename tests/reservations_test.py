@@ -53,8 +53,8 @@ async def test_create_reservation_overlap(
             json=payload.model_dump(mode="json"),
             headers=auth_headers_user,
         )
-    # Expect 201 (Created)
-    assert resp.status_code == 201, f"Reservation {i+1} failed"
+        # Expect 201 (Created)
+        assert resp.status_code == 201, f"Reservation {i + 1} failed"
 
     resp_overflow = await async_client.post(
         "/reservations",

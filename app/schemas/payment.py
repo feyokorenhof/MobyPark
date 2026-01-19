@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 from pydantic import BaseModel, ConfigDict
 
@@ -16,4 +17,6 @@ class PaymentIn(BaseModel):
 class PaymentOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
+    amount: float
+    completed_at: datetime
     status: PaymentStatus

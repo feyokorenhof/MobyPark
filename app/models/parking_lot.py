@@ -24,6 +24,7 @@ class ParkingLot(Base):
         DateTime(timezone=True),
         server_default=func.now(),  # let DB set it
     )
+    created_by: Mapped[int] = mapped_column(Integer, nullable=False)
 
     latitude: Mapped[float] = mapped_column(Float, nullable=False)
     longitude: Mapped[float] = mapped_column(Float, nullable=False)

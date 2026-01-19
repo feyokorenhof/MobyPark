@@ -30,3 +30,12 @@ class LoginOut(BaseModel):
 class UserOut(BaseModel):
     model_config = {"from_attributes": True}
     id: int
+    email: str
+    name: str
+    phone: str
+
+
+class UserUpdateIn(BaseModel):
+    email: EmailStr
+    name: constr(min_length=3, max_length=100)  # pyright: ignore[reportInvalidTypeForm]
+    phone: constr(min_length=9)  # pyright: ignore[reportInvalidTypeForm]

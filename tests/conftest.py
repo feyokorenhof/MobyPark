@@ -181,12 +181,13 @@ def auth_headers_hotel_manager(token_for_hotel_manager: str) -> dict[str, str]:
 
 
 @pytest.fixture
-async def lot_in_db(async_session: AsyncSession):
+async def lot_in_db(async_session: AsyncSession, admin_in_db: User):
     lot = ParkingLot(
         name="TestLot",
         location="Rotterdam",
         address="Wijnhaven 107",
         capacity=5,
+        created_by=admin_in_db.id,
         reserved=0,
         tariff=5.0,
         daytariff=30.0,

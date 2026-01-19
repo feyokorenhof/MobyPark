@@ -2,13 +2,23 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.models.user import User
-from app.schemas.auth import LoginIn, LoginOut, RegisterIn, RegisterOut, UserOut
+from app.schemas.auth import (
+    LoginIn,
+    LoginOut,
+    RegisterIn,
+    RegisterOut,
+    UserOut,
+    UserUpdateIn,
+)
 from app.services.auth import (
     create_user,
     create_admin,
+    delete_user,
+    get_current_user,
     get_user,
     login_account,
     require_roles,
+    update_user,
 )
 
 
@@ -34,7 +44,62 @@ async def user(
     db: AsyncSession = Depends(get_session),
     current_user: User = Depends(require_roles("admin")),
 ):
-    return await get_user(db, user_id)
+    user = await get_user(db, user_id)
+    return UserOut.model_validate(user)
+
+
+@router.put("/users/{user_id}", response_model=UserOut, status_code=status.HTTP_200_OK)
+async def update_other_user(
+    user_id: int,
+    payload: UserUpdateIn,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(require_roles("admin")),
+):
+    user = await update_user(db, payload, current_user)
+    return UserOut.model_validate(user)
+
+
+@router.delete(
+    "/users/{user_id}", response_model=UserOut, status_code=status.HTTP_200_OK
+)
+async def delete_other_user(
+    user_id: int,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(require_roles("admin")),
+):
+    user = await delete_user(db, user_id)
+    return UserOut.model_validate(user)
+
+
+@router.get("/users/me", response_model=UserOut, status_code=status.HTTP_200_OK)
+async def get_me(
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    user = await get_user(db, current_user.id)
+    return UserOut.model_validate(user)
+
+
+@router.put("/users/me", response_model=UserOut, status_code=status.HTTP_200_OK)
+async def update_me(
+    payload: UserUpdateIn,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    user = await update_user(
+        db,
+        payload,
+        current_user,
+    )
+    return UserOut.model_validate(user)
+
+
+@router.delete("/users/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_me(
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    await delete_user(db, current_user.id)
 
 
 @router.post(

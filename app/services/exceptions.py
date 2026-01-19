@@ -27,8 +27,6 @@ class ParkingLotNotFound(ParkingLotError):
 
 
 class ParkingLotAtCapacity(Exception):
-    """Raised when parking lot is at full capacity."""
-
     pass
 
 
@@ -42,6 +40,10 @@ class AccountAlreadyExists(AuthError):
 
 
 class InvalidCredentials(AuthError):
+    pass
+
+
+class AccessForbidden(AuthError):
     pass
 
 

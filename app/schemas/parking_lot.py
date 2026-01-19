@@ -7,6 +7,7 @@ class ParkingLotIn(BaseModel):
     location: str
     address: str
     capacity: int
+    created_by: int
     reserved: int
     tariff: float
     daytariff: float
@@ -21,6 +22,7 @@ class ParkingLotOut(BaseModel):
     location: str
     address: str
     capacity: int
+    created_by: int
     reserved: int
     tariff: float
     daytariff: float

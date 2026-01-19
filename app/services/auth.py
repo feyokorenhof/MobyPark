@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
 from app.models.user import User
-from app.schemas.auth import LoginIn, LoginOut, RegisterIn, UserOut
+from app.schemas.auth import LoginIn, LoginOut, RegisterIn, UserUpdateIn
 from app.services.exceptions import (
     AccountAlreadyExists,
     InvalidCredentials,
@@ -113,6 +113,29 @@ async def create_user(db: AsyncSession, payload: RegisterIn):
     return user
 
 
+async def update_user(db: AsyncSession, payload: UserUpdateIn, current_user: User):
+    existing = await db.execute(select(User).where(User.email == payload.email))
+
+    user = existing.scalar_one_or_none()
+    if user is None:
+        return UserNotFound()
+
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+async def delete_user(db: AsyncSession, user_id: int):
+    existing = await db.execute(select(User).where(User.id == user_id))
+
+    user = existing.scalar_one_or_none()
+    if user is None:
+        return UserNotFound()
+
+    await db.delete(user)
+    await db.commit()
+
+
 async def create_admin(db: AsyncSession, payload: RegisterIn):
     existing = await db.execute(select(User).where(User.email == payload.email))
     if existing.scalar_one_or_none():
@@ -161,10 +184,10 @@ async def login_account(db: AsyncSession, payload: LoginIn):
     return LoginOut(access_token=token, token_type="bearer")
 
 
-async def get_user(db: AsyncSession, user_id: int):
+async def get_user(db: AsyncSession, user_id: int) -> User:
     existing = await db.execute(select(User).where(User.id == user_id))
     user = existing.scalar_one_or_none()
     if not user:
         raise UserNotFound()
 
-    return UserOut(id=user.id)
+    return user

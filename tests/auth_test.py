@@ -2,7 +2,7 @@ from httpx import AsyncClient
 import pytest
 
 from app.models.user import User
-from app.schemas.auth import LoginOut, RegisterIn, RegisterOut, UserOut
+from app.schemas.auth import LoginOut, RegisterIn, RegisterOut, UserOut, UserUpdateIn
 
 EMAIL = "test@test.com"
 USERNAME = "test"

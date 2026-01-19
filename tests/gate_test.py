@@ -120,7 +120,8 @@ async def test_gate_exit_paid(
     assert data_entry.decision == GateDecision.open
 
     payload_payment = PaymentIn(
-        parking_lot_id=gate.parking_lot_id, license_plate=payload_entry.license_plate
+        parking_lot_id=gate.parking_lot_id,
+        license_plate=payload_entry.license_plate,
     )
 
     resp_payment = await async_client.post(

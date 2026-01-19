@@ -4,7 +4,7 @@ from app.db.session import get_session
 from app.models.user import User
 from app.schemas.payment import PaymentIn, PaymentOut
 from app.services.auth import require_roles
-from app.services.payments import mark_payment_paid, retrieve_payment
+from app.services.payments import handle_payment, retrieve_payment
 
 
 router = APIRouter()
@@ -30,5 +30,5 @@ async def pay_payment(
     db: AsyncSession = Depends(get_session),
     current_user: User = Depends(require_roles("parking_meter")),
 ):
-    payment = await mark_payment_paid(db, payload, current_user)
+    payment = await handle_payment(db, payload, current_user)
     return PaymentOut.model_validate(payment)

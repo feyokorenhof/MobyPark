@@ -1,7 +1,6 @@
 from httpx import AsyncClient
 import pytest
 
-from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.schemas.vehicle import VehicleIn, VehicleOut
 
@@ -19,13 +18,13 @@ async def test_create_vehicle(
         color="Blue",
         year=2020,
     )
-    
+
     resp = await async_client.post(
         "/vehicles",
         json=payload.model_dump(mode="json"),
         headers=auth_headers_user,
     )
-    
+
     assert resp.status_code == 201
     data = VehicleOut.model_validate(resp.json())
     assert data.license_plate == "AB-123-CD"
@@ -45,7 +44,7 @@ async def test_create_vehicle_duplicate_plate(
         color="Blue",
         year=2020,
     )
-    
+
     # Create first vehicle
     resp1 = await async_client.post(
         "/vehicles",
@@ -53,7 +52,7 @@ async def test_create_vehicle_duplicate_plate(
         headers=auth_headers_user,
     )
     assert resp1.status_code == 201
-    
+
     # Try to create duplicate
     resp2 = await async_client.post(
         "/vehicles",
@@ -74,7 +73,7 @@ async def test_list_user_vehicles(
         "/vehicles",
         headers=auth_headers_user,
     )
-    
+
     assert resp.status_code == 200
     data = resp.json()
     assert isinstance(data, list)
@@ -93,7 +92,7 @@ async def test_get_vehicle(
         f"/vehicles/{vehicle_in_db.id}",
         headers=auth_headers_user,
     )
-    
+
     assert resp.status_code == 200
     data = VehicleOut.model_validate(resp.json())
     assert data.id == vehicle_in_db.id
@@ -113,13 +112,13 @@ async def test_update_vehicle(
         color="Red",  # Changed
         year=2021,  # Changed
     )
-    
+
     resp = await async_client.put(
         f"/vehicles/{vehicle_in_db.id}",
         json=payload.model_dump(mode="json"),
         headers=auth_headers_user,
     )
-    
+
     assert resp.status_code == 200
     data = VehicleOut.model_validate(resp.json())
     assert data.make == "Honda"
@@ -137,9 +136,9 @@ async def test_delete_vehicle(
         f"/vehicles/{vehicle_in_db.id}",
         headers=auth_headers_user,
     )
-    
+
     assert resp.status_code == 204
-    
+
     # Verify it's deleted
     resp_get = await async_client.get(
         f"/vehicles/{vehicle_in_db.id}",
@@ -158,10 +157,11 @@ async def test_create_vehicle_unauthorized(async_client: AsyncClient):
         color="Blue",
         year=2020,
     )
-    
+
     resp = await async_client.post(
         "/vehicles",
         json=payload.model_dump(mode="json"),
     )
-    
+
     assert resp.status_code == 401
+

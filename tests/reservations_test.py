@@ -46,21 +46,23 @@ async def test_create_reservation_overlap(
         vehicle_id=vehicle_in_db.id,
         license_plate=vehicle_in_db.license_plate,
     )
-    resp1 = await async_client.post(
-        "/reservations",
-        json=payload.model_dump(mode="json"),
-        headers=auth_headers_user,
-    )
+    # Create reservations up to capacity (5)
+    for i in range(lot_in_db.capacity):
+        resp = await async_client.post(
+            "/reservations",
+            json=payload.model_dump(mode="json"),
+            headers=auth_headers_user,
+        )
     # Expect 201 (Created)
-    assert resp1.status_code == 201
+    assert resp.status_code == 201, f"Reservation {i+1} failed"
 
-    resp2 = await async_client.post(
+    resp_overflow = await async_client.post(
         "/reservations",
         json=payload.model_dump(mode="json"),
         headers=auth_headers_user,
     )
     # Expect 409 (Conflict) because of overlapping times
-    assert resp2.status_code == 409
+    assert resp_overflow.status_code == 409
 
 
 @pytest.mark.anyio

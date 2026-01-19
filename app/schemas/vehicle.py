@@ -3,7 +3,6 @@ from datetime import datetime
 
 
 class VehicleIn(BaseModel):
-    user_id: int
     license_plate: str
     make: str
     model: str
@@ -13,6 +12,7 @@ class VehicleIn(BaseModel):
 
 class VehicleOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
+    
     id: int
     user_id: int
     license_plate: str

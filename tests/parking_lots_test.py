@@ -70,3 +70,29 @@ async def test_create_lot_unauthorized(
 
     # Expect 403 (Forbidden)
     assert resp.status_code == 403
+
+
+@pytest.mark.anyio
+async def test_create_lot_hotel_manager(
+    async_client: AsyncClient, auth_headers_hotel_manager: dict[str, str]
+):
+    name = "HotelLot"
+    payload = ParkingLotIn(
+        name=name,
+        location="Rotterdam",
+        address="Hotellaan 23",
+        capacity=20,
+        reserved=0,
+        tariff=5.0,
+        daytariff=30.0,
+        latitude=51.926517,
+        longitude=4.462456,
+    )
+    resp = await async_client.post(
+        "/parking_lots",
+        json=payload.model_dump(mode="json"),
+        headers=auth_headers_hotel_manager,
+    )
+
+    # Expect 201 (Created)
+    assert resp.status_code == 201

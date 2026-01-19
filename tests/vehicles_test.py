@@ -164,4 +164,3 @@ async def test_create_vehicle_unauthorized(async_client: AsyncClient):
     )
 
     assert resp.status_code == 401
-

@@ -82,9 +82,7 @@ def reset_test_database_once():
     yield
 
 
-@pytest.fixture
-async def user_in_db(async_session: AsyncSession) -> User:
-    email = "user@test.com"
+async def create_user(async_session: AsyncSession, email: str, role: UserRole):
     result = await async_session.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
 
@@ -92,12 +90,12 @@ async def user_in_db(async_session: AsyncSession) -> User:
         return user
 
     user = User(
-        username="TestUser",
+        username=email,
         password_hash="test",
-        name="Test user",
+        name=email,
         email=email,
         phone="683713498",
-        role=UserRole.user,
+        role=role,
         active=True,
         birth_year=2001,
     )
@@ -105,109 +103,61 @@ async def user_in_db(async_session: AsyncSession) -> User:
     await async_session.commit()
     await async_session.refresh(user)
     return user
+
+
+@pytest.fixture
+async def user_in_db(async_session: AsyncSession) -> User:
+    return await create_user(async_session, "user@test.com", UserRole.user)
 
 
 @pytest.fixture
 async def admin_in_db(async_session: AsyncSession) -> User:
-    email = "admin@test.com"
-    result = await async_session.execute(select(User).where(User.email == email))
-    user = result.scalar_one_or_none()
-
-    if user:
-        return user
-
-    user = User(
-        username="TestAdmin",
-        password_hash="test",
-        name="Test user",
-        email=email,
-        phone="683713498",
-        role=UserRole.admin,
-        active=True,
-        birth_year=2001,
-    )
-
-    async_session.add(user)
-    await async_session.commit()
-    await async_session.refresh(user)
-    return user
+    return await create_user(async_session, "admin@test.com", UserRole.admin)
 
 
 @pytest.fixture
 async def parking_meter_in_db(async_session: AsyncSession) -> User:
-    email = "parking@meter.com"
-    result = await async_session.execute(select(User).where(User.email == email))
-    user = result.scalar_one_or_none()
+    return await create_user(async_session, "parking@meter.com", UserRole.parking_meter)
 
-    if user:
-        return user
 
-    user = User(
-        username="TestParkingMeter",
-        password_hash="test",
-        name="Test Parking Meter",
-        email=email,
-        phone="683713498",
-        role=UserRole.parking_meter,
-        active=True,
-        birth_year=2001,
+@pytest.fixture
+async def hotel_manager_in_db(async_session: AsyncSession) -> User:
+    return await create_user(async_session, "hotel@manager.com", UserRole.hotel_manager)
+
+
+def create_token(user: User) -> str:
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": str(user.id),
+        "iat": int(now.timestamp()),
+        "exp": int((now + timedelta(minutes=30)).timestamp()),
+    }
+
+    return jwt.encode(
+        payload,
+        JWT_SECRET,
+        algorithm=JWT_ALG,
     )
-
-    async_session.add(user)
-    await async_session.commit()
-    await async_session.refresh(user)
-    return user
 
 
 @pytest.fixture
 def token_for_user(user_in_db: User) -> str:
-    now = datetime.now(timezone.utc)
-    payload = {
-        "sub": str(user_in_db.id),
-        "iat": int(now.timestamp()),
-        "exp": int((now + timedelta(minutes=30)).timestamp()),
-    }
-
-    token = jwt.encode(
-        payload,
-        JWT_SECRET,
-        algorithm=JWT_ALG,
-    )
-    return token
+    return create_token(user_in_db)
 
 
 @pytest.fixture
 def token_for_admin(admin_in_db: User) -> str:
-    now = datetime.now(timezone.utc)
-    payload = {
-        "sub": str(admin_in_db.id),
-        "iat": int(now.timestamp()),
-        "exp": int((now + timedelta(minutes=30)).timestamp()),
-    }
-
-    token = jwt.encode(
-        payload,
-        JWT_SECRET,
-        algorithm=JWT_ALG,
-    )
-    return token
+    return create_token(admin_in_db)
 
 
 @pytest.fixture
 def token_for_parking_meter(parking_meter_in_db: User) -> str:
-    now = datetime.now(timezone.utc)
-    payload = {
-        "sub": str(parking_meter_in_db.id),
-        "iat": int(now.timestamp()),
-        "exp": int((now + timedelta(minutes=30)).timestamp()),
-    }
+    return create_token(parking_meter_in_db)
 
-    token = jwt.encode(
-        payload,
-        JWT_SECRET,
-        algorithm=JWT_ALG,
-    )
-    return token
+
+@pytest.fixture
+def token_for_hotel_manager(hotel_manager_in_db: User) -> str:
+    return create_token(hotel_manager_in_db)
 
 
 @pytest.fixture
@@ -223,6 +173,11 @@ def auth_headers_admin(token_for_admin: str) -> dict[str, str]:
 @pytest.fixture
 def auth_headers_parking_meter(token_for_parking_meter: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token_for_parking_meter}"}
+
+
+@pytest.fixture
+def auth_headers_hotel_manager(token_for_hotel_manager: str) -> dict[str, str]:
+    return {"Authorization": f"Bearer {token_for_hotel_manager}"}
 
 
 @pytest.fixture

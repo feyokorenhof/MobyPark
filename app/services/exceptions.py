@@ -25,6 +25,10 @@ class ParkingLotError(Exception):
 class ParkingLotNotFound(ParkingLotError):
     pass
 
+class ParkingLotAtCapacity(Exception):
+    """Raised when parking lot is at full capacity."""
+    pass
+
 
 # Auth
 class AuthError(Exception):

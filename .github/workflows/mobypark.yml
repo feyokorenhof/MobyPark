@@ -18,6 +18,14 @@ jobs:
       APP_WORKERS: ${{ secrets.APP_WORKERS }}
     steps:
       - uses: actions/checkout@v5
+      - name: Debug Docker availability
+        run: |
+          whoami
+          uname -a
+          ls -l /var/run/docker.sock || true
+          ls -l /run/docker.sock || true
+          docker version || true
+          docker info || true
       - name: Create .env for docker compose
         run: |
           cat > .env << EOF

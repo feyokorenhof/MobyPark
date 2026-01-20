@@ -66,3 +66,7 @@ jobs:
         run: |
           pip install pytest pytest-cov
           pytest --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+      - name: Cleanup Docker (always)
+        if: always()
+        run: |
+          docker system prune -af --volumes

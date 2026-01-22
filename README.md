@@ -167,7 +167,6 @@ Services started:
 - API → <http://localhost:8000>  
 - Docs → <http://localhost:8000/docs>  
 - Postgres → service `db`  
-- Redis → service `redis`
 
 ---
 

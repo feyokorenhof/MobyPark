@@ -11,9 +11,8 @@ jobs:
     name: Tests
     runs-on: self-hosted
     environment: Testing
-
     env:
-      COMPOSE_PROJECT_NAME: mobypark_ci_${{ github.run_id }}
+      PROJECT: mobypark_ci_${{ github.run_id }}
 
     steps:
       - uses: actions/checkout@v5
@@ -45,20 +44,20 @@ jobs:
 
       - name: Build and start services
         run: |
-          docker compose --env-file .env up -d --build --remove-orphans
+          docker compose -p "$PROJECT" --env-file .env up -d --build --remove-orphans
 
       - name: Debug db container state
         if: always()
         run: |
-          docker compose ps
-          docker compose logs --no-color --tail=200 db || true
+          docker compose -p "$PROJECT" ps
+          docker compose -p "$PROJECT" logs --no-color --tail=200 db || true
 
       - name: Wait for Postgres to be ready
         env:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         run: |
           set -e
-          DB_CID=$(docker compose ps -q db)
+          DB_CID=$(docker compose -p "$PROJECT" ps -q db)
 
           for i in $(seq 1 60); do
             if docker exec "$DB_CID" pg_isready -U "$POSTGRES_USER" -d postgres >/dev/null 2>&1; then
@@ -70,7 +69,7 @@ jobs:
           done
 
           echo "Postgres did not become ready"
-          docker compose logs --no-color --tail=200 db || true
+          docker compose -p "$PROJECT" logs --no-color --tail=200 db || true
           exit 1
 
       - name: Ensure test database exists
@@ -79,7 +78,7 @@ jobs:
           POSTGRES_TEST_DB: ${{ secrets.POSTGRES_TEST_DB }}
         run: |
           set -e
-          DB_CID=$(docker compose ps -q db)
+          DB_CID=$(docker compose -p "$PROJECT" ps -q db)
 
           echo "Ensuring test DB exists: $POSTGRES_TEST_DB"
 
@@ -90,12 +89,12 @@ jobs:
 
       - name: Run tests
         run: |
-          docker compose exec -T api pytest
+          docker compose -p "$PROJECT" exec -T api pytest
 
       - name: Cleanup
         if: always()
         run: |
-          docker compose down -v --remove-orphans
+          docker compose -p "$PROJECT" down -v --remove-orphans
 
   deploy:
     name: Deploy (push to main only)

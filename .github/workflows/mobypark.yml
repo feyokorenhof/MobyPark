@@ -51,7 +51,7 @@ jobs:
           echo "COMPOSE=docker compose -p \"$PROJECT\" --env-file .env -f docker-compose.yml -f docker-compose-ci.yml" >> $GITHUB_ENV
       - name: Build and start services
         run: |
-          $COMPOSE -d --build --remove-orphans
+          $COMPOSE up -d --build --remove-orphans
 
       - name: Debug db container state
         if: always()

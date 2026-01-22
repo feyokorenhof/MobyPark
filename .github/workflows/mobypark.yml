@@ -40,6 +40,12 @@ jobs:
       - name: Build and start services
         run: |
           docker compose up -d --build
+
+      - name: Debug db container state
+        if: always()
+        run: |
+          docker compose ps
+          docker compose logs --no-color --tail=200 db || true
       - name: Wait for Postgres to be ready
         env:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}

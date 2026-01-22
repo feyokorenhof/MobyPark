@@ -11,6 +11,7 @@ from app.schemas.gate import (
     GateIn,
 )
 
+from app.services.exceptions import GateNotFound
 from app.services.parking_sessions import (
     close_session,
     create_session_anonymously,
@@ -88,14 +89,12 @@ async def handle_gate_exit(
     # To exit you must have an active session
     # But we don't want to trap people
     if not active_session:
-        print("No active session found")
         return GateEventOut(
             gate_id=payload.gate_id,
             decision=GateDecision.open,
             reason="no_active_session",
         )
 
-    print("Active session found")
     # Check if session is actually paid
     if active_session.payment.status != PaymentStatus.paid:
         return GateEventOut(
@@ -113,6 +112,13 @@ async def handle_gate_exit(
     )
 
 
+async def retrieve_gate(db: AsyncSession, gate_id: int) -> Gate:
+    existing = await db.get(Gate, gate_id)
+    if not existing:
+        raise GateNotFound()
+    return existing
+
+
 async def create_gate(db: AsyncSession, payload: GateIn) -> Gate:
     new_gate = Gate(parking_lot_id=payload.parking_lot_id)
     db.add(new_gate)
@@ -120,3 +126,21 @@ async def create_gate(db: AsyncSession, payload: GateIn) -> Gate:
     await db.commit()
     await db.refresh(new_gate)
     return new_gate
+
+
+async def update_gate(
+    db: AsyncSession,
+    gate_id: int,
+    payload: GateIn,
+) -> Gate:
+    gate = await retrieve_gate(db, gate_id)
+    gate.parking_lot_id = payload.parking_lot_id
+    await db.commit()
+    await db.refresh(gate)
+    return gate
+
+
+async def delete_gate(db: AsyncSession, gate_id: int):
+    gate = await retrieve_gate(db, gate_id)
+    await db.delete(gate)
+    await db.commit()

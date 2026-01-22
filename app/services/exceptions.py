@@ -76,3 +76,12 @@ class PaymentNotFound(PaymentError):
 
 class PaymentNoEntryOrExitTime(PaymentError):
     pass
+
+
+# Gates
+class GateError(Exception):
+    pass
+
+
+class GateNotFound(GateError):
+    pass

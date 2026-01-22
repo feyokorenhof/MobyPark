@@ -165,7 +165,7 @@ jobs:
             # Wait until Postgres is actually accepting connections
             echo "Waiting for Postgres to accept connections..."
             for i in {1..60}; do
-              if docker compose exec -T db pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" >/dev/null 2>&1; then
+              if docker compose exec -T db sh -lc 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"' >/dev/null 2>&1; then
                 echo "Postgres is ready"
                 break
               fi

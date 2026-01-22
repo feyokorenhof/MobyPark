@@ -4,7 +4,12 @@ from app.db.session import get_session
 from app.models.user import User
 from app.schemas.reservations import ReservationIn, ReservationOut
 from app.services.auth import get_current_user
-from app.services.reservations import create_reservation, retrieve_reservation
+from app.services.reservations import (
+    create_reservation,
+    delete_reservation,
+    retrieve_reservation,
+    update_reservation,
+)
 
 
 router = APIRouter()
@@ -33,3 +38,27 @@ async def add_reservation(
     # app.services.reservation.py
     new_res = await create_reservation(db, payload, current_user)
     return ReservationOut.model_validate(new_res)
+
+
+@router.put(
+    "/{reservation_id}", response_model=ReservationOut, status_code=status.HTTP_200_OK
+)
+async def edit_reservation(
+    reservation_id: int,
+    payload: ReservationIn,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    # app.services.reservation.py
+    new_res = await update_reservation(db, reservation_id, payload, current_user)
+    return ReservationOut.model_validate(new_res)
+
+
+@router.delete("/{reservation_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_reservation(
+    reservation_id: int,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    # app.services.reservation.py
+    await delete_reservation(db, reservation_id, current_user)

@@ -125,6 +125,24 @@ async def create_reservation(
     return reservation
 
 
+async def update_reservation(
+    db: AsyncSession, reservation_id, payload: ReservationIn, current_user: User
+):
+    reservation = await retrieve_reservation(db, reservation_id, current_user)
+    reservation.planned_start = payload.planned_start
+    reservation.planned_end = payload.planned_end
+
+    await db.commit()
+    await db.refresh(reservation)
+    return reservation
+
+
+async def delete_reservation(db: AsyncSession, reservation_id: int, current_user: User):
+    reservation = await retrieve_reservation(db, reservation_id, current_user)
+    await db.delete(reservation)
+    await db.commit()
+
+
 async def retrieve_reservation(
     db: AsyncSession, reservation_id: int, current_user: User
 ) -> Reservation:
@@ -159,4 +177,3 @@ async def try_get_valid_reservation_by_plate(
         )
     )
     return result.scalar_one_or_none()
-

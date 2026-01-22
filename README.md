@@ -1,5 +1,6 @@
 # MobyPark 🅿️  
-**FastAPI + SQLAlchemy + Alembic + PostgreSQL + Redis (Dockerized)**
+
+**FastAPI + SQLAlchemy + Alembic + PostgreSQL (Dockerized)**
 
 A clean, production-ready backend for a parking platform — with authentication, migrations, and Docker-based development.
 
@@ -8,6 +9,7 @@ This guide helps any teammate set up and run the project from a completely clean
 ---
 
 ## 🧭 Table of Contents
+
 - [Prerequisites](#prerequisites)
 - [Project Structure](#project-structure)
 - [Configuration](#configuration)
@@ -161,8 +163,9 @@ docker compose up
 ```
 
 Services started:
-- API → http://localhost:8000  
-- Docs → http://localhost:8000/docs  
+
+- API → <http://localhost:8000>  
+- Docs → <http://localhost:8000/docs>  
 - Postgres → service `db`  
 - Redis → service `redis`
 
@@ -227,9 +230,10 @@ docker compose exec api alembic upgrade head
 curl http://localhost:8000/health
 ```
 
-**Docs:** http://localhost:8000/docs
+**Docs:** <http://localhost:8000/docs>
 
 **Register:**
+
 ```http
 POST /auth/register
 Content-Type: application/json
@@ -242,6 +246,7 @@ Content-Type: application/json
 ```
 
 **Login:**
+
 ```http
 POST /auth/login
 Content-Type: application/json
@@ -253,6 +258,7 @@ Content-Type: application/json
 ```
 
 Response:
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIs...",
@@ -313,30 +319,29 @@ PY
 
 ```makefile
 up:
-	docker compose up -d
+ docker compose up -d
 logs:
-	docker compose logs -f api
+ docker compose logs -f api
 mig:
-	docker compose exec api alembic revision --autogenerate -m "update"
+ docker compose exec api alembic revision --autogenerate -m "update"
 head:
-	docker compose exec api alembic upgrade head
+ docker compose exec api alembic upgrade head
 down:
-	docker compose down
+ docker compose down
 nuke:
-	docker compose down -v
+ docker compose down -v
 rebuild:
-	docker compose build --no-cache api && docker compose up -d
+ docker compose build --no-cache api && docker compose up -d
 ```
 
 ---
 
 ✅ **You’re ready to go!**  
 Run:
+
 ```bash
 docker compose up -d
 docker compose exec api alembic upgrade head
 ```
+
 Then open [http://localhost:8000/docs](http://localhost:8000/docs)
-
-
-

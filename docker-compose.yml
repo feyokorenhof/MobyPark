@@ -12,38 +12,12 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./docker/init:/docker-entrypoint-initdb.d:ro
-
-    command: [
-        "sh",
-        "-c",
-        "docker-entrypoint.sh postgres & pid=$!; \
-        until pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}; do \
-        echo 'waiting for postgres...'; \
-        sleep 1; \
-        done; \
-        exists=$(psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -tAc \"SELECT 1 FROM pg_database WHERE datname='${POSTGRES_TEST_DB}'\"); \
-        if [ \"$exists\" != \"1\" ]; then \
-        echo \"creating test db ${POSTGRES_TEST_DB}\"; \
-        psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c \"CREATE DATABASE \\\"${POSTGRES_TEST_DB}\\\";\"; \
-        else \
-        echo \"test db ${POSTGRES_TEST_DB} already exists\"; \
-        fi; \
-        wait $pid;",
-      ]
-
-  redis:
-    image: redis:7
-    restart: always
-    ports:
-      - "6379:6379"
-
   api:
     build: .
     volumes:
       - .:/app
     depends_on:
       - db
-      - redis
     env_file: .env
     command:
       [

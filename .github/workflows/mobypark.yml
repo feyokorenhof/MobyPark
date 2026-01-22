@@ -87,6 +87,40 @@ jobs:
             -c "CREATE DATABASE \"${POSTGRES_TEST_DB}\";" \
             || echo "Test DB already exists (continuing)"
 
+      - name: Wait until TEST DB accepts connections (from api)
+        env:
+          POSTGRES_TEST_DB: ${{ secrets.POSTGRES_TEST_DB }}
+        run: |
+          set -e
+          for i in $(seq 1 60); do
+            if docker compose -p "$PROJECT" exec -T api sh -lc \
+              "python - <<'PY'
+          import os, asyncio
+          from sqlalchemy.ext.asyncio import create_async_engine
+
+          db = os.environ['POSTGRES_TEST_DB']
+          url = f\"postgresql+asyncpg://{os.environ['POSTGRES_USER']}:{os.environ['POSTGRES_PASSWORD']}@db:5432/{db}\"
+
+          async def main():
+              engine = create_async_engine(url)
+              try:
+                  async with engine.begin() as conn:
+                      await conn.execute('SELECT 1')
+              finally:
+                  await engine.dispose()
+
+          asyncio.run(main())
+          print('OK')
+          PY"; then
+                  echo "TEST DB is accepting connections"
+                  exit 0
+                fi
+                echo "Waiting for TEST DB to accept connections... ($i/60)"
+                sleep 1
+              done
+              echo "TEST DB never became connectable"
+              docker compose -p "$PROJECT" logs --no-color --tail=200 db || true
+              exit 1
       - name: Run tests
         run: |
           docker compose -p "$PROJECT" exec -T api pytest

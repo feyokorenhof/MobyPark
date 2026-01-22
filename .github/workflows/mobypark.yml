@@ -40,7 +40,41 @@ jobs:
       - name: Build and start services
         run: |
           docker compose up -d --build
+      - name: Wait for Postgres to be ready
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        run: |
+          set -e
+          DB_CID=$(docker compose ps -q db)
+          for i in $(seq 1 60); do
+            if docker exec "$DB_CID" pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" >/dev/null 2>&1; then
+              echo "Postgres is ready"
+              exit 0
+            fi
+            echo "Waiting for Postgres... ($i/60)"
+            sleep 1
+          done
+          echo "Postgres did not become ready"
+          docker compose logs db || true
+          exit 1
 
+      - name: Ensure test database exists
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_TEST_DB: ${{ secrets.POSTGRES_TEST_DB }}
+        run: |
+          set -e
+          DB_CID=$(docker compose ps -q db)
+          exists=$(docker exec "$DB_CID" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc \
+            "SELECT 1 FROM pg_database WHERE datname='${POSTGRES_TEST_DB}'")
+          if [ "$exists" != "1" ]; then
+            echo "Creating test DB ${POSTGRES_TEST_DB}"
+            docker exec "$DB_CID" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "CREATE DATABASE \"${POSTGRES_TEST_DB}\";"
+          else
+            echo "Test DB already exists"
+          fi
       - name: Run tests
         run: |
           docker compose exec -T api pytest

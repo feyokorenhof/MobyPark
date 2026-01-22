@@ -48,7 +48,7 @@ jobs:
 
       - name: Define compose command
         run: |
-          echo "COMPOSE=docker compose -p \"$PROJECT\" --env-file .env -f docker-compose.yml -f docker-compose-ci.yml" >> $GITHUB_ENV
+          echo "COMPOSE=docker compose -p $PROJECT --env-file .env -f docker-compose.yml -f docker-compose-ci.yml" >> $GITHUB_ENV
       - name: Build and start services
         run: |
           $COMPOSE up -d --build --remove-orphans

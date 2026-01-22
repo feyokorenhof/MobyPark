@@ -2,7 +2,7 @@
 
 **FastAPI + SQLAlchemy + Alembic + PostgreSQL (Dockerized)**
 
-A clean, production-ready backend for a parking platform — with authentication, migrations, and Docker-based development.
+A clean, production-ready backend for a parking platform — with authentication, migrations, and Docker-based development!
 
 This guide helps any teammate set up and run the project from a completely clean environment.
 

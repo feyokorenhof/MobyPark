@@ -81,15 +81,12 @@ jobs:
           set -e
           DB_CID=$(docker compose ps -q db)
 
-          exists=$(docker exec "$DB_CID" psql -U "$POSTGRES_USER" -d postgres -tAc \
-            "SELECT 1 FROM pg_database WHERE datname='${POSTGRES_TEST_DB}'")
+          echo "Ensuring test DB exists: $POSTGRES_TEST_DB"
 
-          if [ "$exists" != "1" ]; then
-            echo "Creating test DB ${POSTGRES_TEST_DB}"
-            docker exec "$DB_CID" psql -U "$POSTGRES_USER" -d postgres -c "CREATE DATABASE \"${POSTGRES_TEST_DB}\";"
-          else
-            echo "Test DB already exists"
-          fi
+          # Try to create; if it already exists, continue.
+          docker exec "$DB_CID" psql -U "$POSTGRES_USER" -d postgres -v ON_ERROR_STOP=1 \
+            -c "CREATE DATABASE \"${POSTGRES_TEST_DB}\";" \
+            || echo "Test DB already exists (continuing)"
 
       - name: Run tests
         run: |

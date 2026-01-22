@@ -13,7 +13,30 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+      - name: Create .env for CI (workspace)
+        run: |
+          cat > .env << 'EOF'
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          POSTGRES_TEST_DB=${{ secrets.POSTGRES_TEST_DB }}
 
+          APP_HOST=0.0.0.0
+          APP_PORT=8000
+          APP_WORKERS=1
+
+          DATABASE_HOST=db
+          DATABASE_PORT=5432
+          DATABASE_NAME=${{ secrets.POSTGRES_DB }}
+          DATABASE_USER=${{ secrets.POSTGRES_USER }}
+          DATABASE_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+
+          DATABASE_URL=postgresql+asyncpg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@db:5432/${{ secrets.POSTGRES_DB }}
+          DATABASE_URL_TEST=postgresql+asyncpg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@db:5432/${{ secrets.POSTGRES_TEST_DB }}
+
+          SYNC_DATABASE_URL=postgresql+psycopg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@db:5432/${{ secrets.POSTGRES_DB }}
+          SYNC_DATABASE_URL_TEST=postgresql+psycopg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@db:5432/${{ secrets.POSTGRES_TEST_DB }}
+          EOF
       - name: Build and start services
         run: |
           docker compose up -d --build

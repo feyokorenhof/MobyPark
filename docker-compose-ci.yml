@@ -3,10 +3,11 @@ services:
     ports: []          # do not publish 5432 on the runner
     restart: "no"      # optional; avoids “always” restart loops in CI
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 2s
       timeout: 3s
-      retries: 30
+      retries: 60
+      start_period: 10s
 
   api:
     ports: []          # not needed in CI

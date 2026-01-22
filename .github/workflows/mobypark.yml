@@ -62,46 +62,43 @@ jobs:
           docker compose $COMPOSE_ARGS ps
           docker compose $COMPOSE_ARGS logs --no-color --tail=200 db || true
 
-      - name: Wait for Postgres (health + pg_isready)
+      - name: Wait for Postgres to accept connections
         shell: bash
         run: |
           set -euo pipefail
 
-          docker compose $COMPOSE_ARGS ps
-
           DB_CID="$(docker compose $COMPOSE_ARGS ps -q db)"
-          if [ -z "$DB_CID" ]; then
-            echo "ERROR: db container not found"
-            exit 1
-          fi
+          echo "DB_CID=$DB_CID"
 
+          echo "Waiting for container health..."
           for i in {1..60}; do
             status="$(docker inspect -f '{{.State.Health.Status}}' "$DB_CID" 2>/dev/null || echo starting)"
-            echo "Waiting for Postgres health... ($status) ($i/60)"
-            if [ "$status" = "healthy" ]; then
-              break
-            fi
+            echo "Health: $status ($i/60)"
+            [ "$status" = "healthy" ] && break
             sleep 2
           done
 
           status="$(docker inspect -f '{{.State.Health.Status}}' "$DB_CID" 2>/dev/null || echo unknown)"
           if [ "$status" != "healthy" ]; then
-            echo "ERROR: Postgres did not become healthy. Status=$status"
+            echo "ERROR: DB never became healthy (status=$status)"
             docker logs "$DB_CID" --tail 200 || true
             exit 1
           fi
 
-          # Pull env from the db container itself (no unbound vars)
-          DB_USER="$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$DB_CID" | sed -n 's/^POSTGRES_USER=//p' | head -n1)"
-          DB_NAME="$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$DB_CID" | sed -n 's/^POSTGRES_DB=//p'   | head -n1)"
+          echo "Health is healthy; verifying real connections..."
+          for i in {1..60}; do
+            if docker compose $COMPOSE_ARGS exec -T db bash -lc "pg_isready -h 127.0.0.1 -p 5432 -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\""; then
+              echo "pg_isready OK"
+              break
+            fi
+            echo "pg_isready not ready yet ($i/60)"
+            sleep 1
+          done
 
-          if [ -z "$DB_USER" ] || [ -z "$DB_NAME" ]; then
-            echo "ERROR: Could not read POSTGRES_USER/POSTGRES_DB from db container env"
-            docker inspect "$DB_CID" | head -c 2000 || true
-            exit 1
-          fi
+          # Final hard check: run an actual query
+          docker compose $COMPOSE_ARGS exec -T db bash -lc \
+            "psql -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\" -c 'SELECT 1;'"
 
-          docker compose $COMPOSE_ARGS exec -T db pg_isready -U "$DB_USER" -d "$DB_NAME" -h localhost
       - name: Ensure test database exists
         env:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}

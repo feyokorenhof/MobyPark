@@ -10,7 +10,7 @@ jobs:
   test:
     name: Tests
     runs-on: self-hosted
-
+    environment: Testing
     steps:
       - uses: actions/checkout@v5
       - name: Create .env for CI (workspace)
@@ -94,6 +94,7 @@ jobs:
     name: Deploy (push to main only)
     needs: test
     runs-on: self-hosted
+    environment: Production
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:

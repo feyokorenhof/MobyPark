@@ -45,7 +45,7 @@ jobs:
       - name: Build and start services
         run: |
           docker compose -p "$PROJECT" --env-file .env \
-            -f docker-compose.yml -f docker-compose.ci.yml \
+            -f docker-compose.yml -f docker-compose-ci.yml \
             up -d --build --remove-orphans
 
       - name: Debug db container state

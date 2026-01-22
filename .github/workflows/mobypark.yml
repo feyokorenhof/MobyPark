@@ -45,24 +45,27 @@ jobs:
           SYNC_DATABASE_URL=postgresql+psycopg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@db:5432/${{ secrets.POSTGRES_DB }}
           SYNC_DATABASE_URL_TEST=postgresql+psycopg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@db:5432/${{ secrets.POSTGRES_TEST_DB }}
           EOF
-
-      - name: Define compose command
+      - name: Define compose args
         run: |
-          echo "COMPOSE=docker compose -p $PROJECT --env-file .env -f docker-compose.yml -f docker-compose-ci.yml" >> $GITHUB_ENV
+          echo "COMPOSE_ARGS=-p $PROJECT --env-file .env -f docker-compose.yml -f docker-compose-ci.yml" >> $GITHUB_ENV
+      - name: Pre-clean compose project (idempotent)
+        run: |
+          set -eux
+          docker compose $COMPOSE_ARGS down -v --remove-orphans || true
       - name: Build and start services
         run: |
-          $COMPOSE up -d --build --remove-orphans
+          docker comppose $COMPOSE_ARGS up -d --build --remove-orphans
 
       - name: Debug db container state
         if: always()
         run: |
-          $COMPOSE ps
-          $COMPOSE logs --no-color --tail=200 db || true
+          docker compose $COMPOSE_ARGS ps
+          docker compose $COMPOSE_ARGS logs --no-color --tail=200 db || true
 
       - name: Wait for Postgres to be healthy
         run: |
           set -e
-          DB_CID=$($COMPOSE ps -q db)
+          DB_CID=$(docker comppose $COMPOSE_ARGS ps -q db)
 
           for i in $(seq 1 60); do
             status=$(docker inspect -f '{{.State.Health.Status}}' "$DB_CID" 2>/dev/null || echo "starting")
@@ -75,7 +78,7 @@ jobs:
           done
 
           echo "Postgres did not become healthy"
-          $COMPOSE logs --no-color --tail=200 db || true
+          docker compose $COMPOSE_ARGS logs --no-color --tail=200 db || true
           exit 1
 
       - name: Ensure test database exists
@@ -84,21 +87,21 @@ jobs:
           POSTGRES_TEST_DB: ${{ secrets.POSTGRES_TEST_DB }}
         run: |
           set -e
-          DB_CID=$($COMPOSE ps -q db)
+          DB_CID=$(docker compose $COMPOSE_ARGS ps -q db)
 
-          $COMPOSE exec "$DB_CID" psql -U "$POSTGRES_USER" -d postgres -v ON_ERROR_STOP=1 \
+          docker compose $COMPOSE_ARGS exec "$DB_CID" psql -U "$POSTGRES_USER" -d postgres -v ON_ERROR_STOP=1 \
             -c "CREATE DATABASE \"${POSTGRES_TEST_DB}\";" \
           || echo "Test DB already exists (continuing)"
 
 
       - name: Run tests
         run: |
-          $COMPOSE exec -T api pytest
+          docker compose $COMPOSE_ARGS exec -T api pytest
 
       - name: Cleanup
         if: always()
         run: |
-          $COMPOSE down -v --remove-orphans
+          docker compose $COMPOSE_ARGS down -v --remove-orphans
 
   deploy:
     name: Deploy (push to main only)

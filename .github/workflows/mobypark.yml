@@ -62,24 +62,42 @@ jobs:
           docker compose $COMPOSE_ARGS ps
           docker compose $COMPOSE_ARGS logs --no-color --tail=200 db || true
 
-      - name: Wait for Postgres to be healthy
+      - name: Wait for Postgres to accept connections
+        shell: bash
         run: |
-          set -e
-          DB_CID=$(docker compose $COMPOSE_ARGS ps -q db)
+          set -euo pipefail
 
-          for i in $(seq 1 60); do
-            status=$(docker inspect -f '{{.State.Health.Status}}' "$DB_CID" 2>/dev/null || echo "starting")
-            if [ "$status" = "healthy" ]; then
-              echo "Postgres is healthy"
-              exit 0
+          DB_CID="$(docker compose $COMPOSE_ARGS ps -q db)"
+          echo "DB_CID=$DB_CID"
+
+          echo "Waiting for container health..."
+          for i in {1..60}; do
+            status="$(docker inspect -f '{{.State.Health.Status}}' "$DB_CID" 2>/dev/null || echo starting)"
+            echo "Health: $status ($i/60)"
+            [ "$status" = "healthy" ] && break
+            sleep 2
+          done
+
+          status="$(docker inspect -f '{{.State.Health.Status}}' "$DB_CID" 2>/dev/null || echo unknown)"
+          if [ "$status" != "healthy" ]; then
+            echo "ERROR: DB never became healthy (status=$status)"
+            docker logs "$DB_CID" --tail 200 || true
+            exit 1
+          fi
+
+          echo "Health is healthy; verifying real connections..."
+          for i in {1..60}; do
+            if docker compose $COMPOSE_ARGS exec -T db bash -lc "pg_isready -h 127.0.0.1 -p 5432 -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\""; then
+              echo "pg_isready OK"
+              break
             fi
-            echo "Waiting for Postgres health... ($status) ($i/60)"
+            echo "pg_isready not ready yet ($i/60)"
             sleep 1
           done
 
-          echo "Postgres did not become healthy"
-          docker compose $COMPOSE_ARGS logs --no-color --tail=200 db || true
-          exit 1
+          # Final hard check: run an actual query
+          docker compose $COMPOSE_ARGS exec -T db bash -lc \
+            "psql -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\" -c 'SELECT 1;'"
 
       - name: Ensure test database exists
         env:
@@ -94,6 +112,18 @@ jobs:
           || echo "Test DB already exists (continuing)"
 
 
+      - name: Verify services are running
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker compose $COMPOSE_ARGS ps
+          docker compose $COMPOSE_ARGS ps --status running
+      - name: Dump compose logs on failure
+        if: failure()
+        shell: bash
+        run: |
+          docker compose $COMPOSE_ARGS ps || true
+          docker compose $COMPOSE_ARGS logs --no-color --tail=300 || true
       - name: Run tests
         run: |
           docker compose $COMPOSE_ARGS exec -T api pytest

@@ -6,6 +6,10 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: mobypark-selfhosted
+  cancel-in-progress: false
+
 jobs:
   test:
     name: Tests
